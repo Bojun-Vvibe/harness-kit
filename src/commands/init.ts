@@ -3,7 +3,7 @@ import * as p from "@clack/prompts";
 import type { AgentId, HarnessConfig, InitOptions } from "../types.js";
 import { detectAgents, guessProjectName } from "../utils/detect.js";
 import { ensureDir, pathExists, pkgPath, readText, render, writeText } from "../utils/fs.js";
-import { c, log } from "../utils/log.js";
+import { c, isHarnessOnPath, log, printInstallHint } from "../utils/log.js";
 import { renderAgentFiles } from "./_shared.js";
 
 const TEMPLATE_VERSION = "1";
@@ -139,13 +139,22 @@ export async function runInit(opts: InitOptions): Promise<void> {
   log.step("Done");
   log.ok(`${written.length} files written to ${c.cyan(cwd)}`);
   log.dim(`agents=${agents.join(",")}`);
-  log.blank();
+
+  const harnessAvailable = isHarnessOnPath();
+  if (!harnessAvailable) {
+    printInstallHint();
+  }
+
   log.info("Next steps:");
   log.raw(`  ${c.cyan("1.")} Read ${c.bold("AGENTS.md")} — your harness entry point`);
   log.raw(`  ${c.cyan("2.")} Open the repo in your AI agent and paste the bootstrap prompt`);
   log.raw(`        (see ${c.bold("README.md § After init: hand it to your agent")})`);
   log.raw(`  ${c.cyan("3.")} Run ${c.bold("make check")} to verify the harness is wired up`);
-  log.raw(`  ${c.cyan("4.")} Run ${c.bold("harness doctor")} for a 5-subsystem health score`);
+  log.raw(
+    `  ${c.cyan("4.")} Run ${c.bold("harness doctor")} for a 5-subsystem health score${
+      harnessAvailable ? "" : c.dim("  (install harness-kit globally first — see above)")
+    }`,
+  );
   log.blank();
 }
 

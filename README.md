@@ -51,24 +51,28 @@ Delete the kit and the files keep working.
 
 ## Install / use
 
-Zero install:
+The kit ships a `harness` CLI. The generated `Makefile` and `scripts/` call
+`harness ...` directly, so you almost always want it on your PATH.
 
 ```bash
-# new project — interactive
+# Install once globally (recommended) ──────────────────────────────────
+npm install -g harness-kit
+harness init                 # new project (interactive)
+harness inject               # existing project (dry-run by default)
+
+# Or zero-install via npx ───────────────────────────────────────────────
+# Note: npx exposes `harness` only inside that single call. The
+# generated PROGRESS.md / Makefile / scripts call `harness ...`, so
+# you'll still want the global install eventually.
 npx harness-kit init
-
-# existing project — dry-run first
-npx harness-kit inject
-
-# apply for real
 npx harness-kit inject --apply
 ```
 
-Or install once:
+If you used `npx` and now see "command not found: harness" when running
+`harness doctor` or `make session-start`, install globally:
 
 ```bash
-npm i -g harness-kit
-harness init
+npm install -g harness-kit
 ```
 
 ---

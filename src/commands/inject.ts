@@ -3,7 +3,7 @@ import * as p from "@clack/prompts";
 import type { AgentId, HarnessConfig, InjectOptions } from "../types.js";
 import { detectAgents, detectExisting, guessProjectName } from "../utils/detect.js";
 import { ensureDir, pathExists, pkgPath, readText, render, writeText } from "../utils/fs.js";
-import { c, log } from "../utils/log.js";
+import { c, isHarnessOnPath, log, printInstallHint } from "../utils/log.js";
 import { mergeMakefile, mergeMarkdown } from "../utils/merge.js";
 import { renderAgentFiles } from "./_shared.js";
 
@@ -146,6 +146,9 @@ export async function runInject(opts: InjectOptions): Promise<void> {
   await chmodScripts(cwd);
 
   log.blank();
+  if (!isHarnessOnPath()) {
+    printInstallHint();
+  }
   log.ok(`Inject complete. Run ${c.bold("harness doctor")} to score the result.`);
 }
 

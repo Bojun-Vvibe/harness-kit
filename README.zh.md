@@ -43,24 +43,26 @@
 
 ## 安装 / 使用
 
-零安装：
+工具自带一个 `harness` CLI。生成出来的 `Makefile` 和 `scripts/` 都直接调 `harness ...`，所以基本都要把它装到 PATH 里。
 
 ```bash
-# 新项目 — 交互式
+# 推荐：全局装一次 ────────────────────────────────────────────────
+npm install -g harness-kit
+harness init                 # 新项目（交互式）
+harness inject               # 老项目（默认 dry-run）
+
+# 或者零安装用 npx ───────────────────────────────────────────────
+# 注意：npx 只在那一次调用里暴露 `harness` 命令。
+# 生成的 PROGRESS.md / Makefile / scripts 都调 `harness ...`，
+# 所以你最终还是会想全局装一次。
 npx harness-kit init
-
-# 老项目 — 默认 dry-run
-npx harness-kit inject
-
-# 真正写入
 npx harness-kit inject --apply
 ```
 
-或者全局装一次：
+如果你用了 `npx`，然后跑 `harness doctor` 或 `make session-start` 报 "command not found: harness"，全局装一次就好：
 
 ```bash
-npm i -g harness-kit
-harness init
+npm install -g harness-kit
 ```
 
 ---
