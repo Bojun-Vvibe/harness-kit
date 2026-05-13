@@ -172,6 +172,73 @@ async function main(): Promise<void> {
   cli.help();
   cli.version(version);
   cli.parse(process.argv);
+
+  // cac silently exits 0 for unknown or no commands. Make it loud and helpful.
+  const userArgs = process.argv.slice(2);
+  // If user just typed `harness` with no command, show the help block.
+  if (userArgs.length === 0) {
+    cli.outputHelp();
+    return;
+  }
+  // If user passed --help or --version, cac already handled it.
+  if (userArgs.some((a) => ["-h", "--help", "-v", "--version"].includes(a))) {
+    return;
+  }
+  // matchedCommand is set by cac iff a command was matched.
+  // biome-ignore lint/suspicious/noExplicitAny: cac internal field
+  const matched = (cli as any).matchedCommand !== undefined;
+  if (!matched) {
+    const typed = userArgs[0] ?? "";
+    const all = [
+      "init",
+      "inject",
+      "doctor",
+      "clean",
+      "feature add",
+      "feature list",
+      "feature start",
+      "feature done",
+      "feature block",
+      "session start",
+      "session end",
+    ];
+    const suggestion = closest(typed, all);
+    log.err(`Unknown command: ${typed}`);
+    if (suggestion) {
+      log.warn(`Did you mean: ${suggestion}?`);
+    }
+    log.dim("Run `harness --help` to see all commands.");
+    process.exit(2);
+  }
+} /**
+ * Cheap edit-distance based suggestion. Returns the closest candidate
+ * within 3 edits, or undefined.
+ */
+function closest(input: string, candidates: string[]): string | undefined {
+  let best: { name: string; dist: number } | undefined;
+  for (const c of candidates) {
+    const d = editDistance(input, c.split(" ")[0]!);
+    if (d <= 3 && (!best || d < best.dist)) {
+      best = { name: c, dist: d };
+    }
+  }
+  return best?.name;
+}
+
+function editDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const m: number[][] = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = 0; i <= a.length; i++) m[i]![0] = i;
+  for (let j = 0; j <= b.length; j++) m[0]![j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      m[i]![j] = Math.min(m[i - 1]![j]! + 1, m[i]![j - 1]! + 1, m[i - 1]![j - 1]! + cost);
+    }
+  }
+  return m[a.length]![b.length]!;
 }
 
 function parseAgents(input?: string): AgentId[] | undefined {

@@ -41,7 +41,6 @@ describe("harness init", () => {
       stdio: "pipe",
     });
 
-    // Spot-check files from each subsystem
     expect(existsSync(join(dir, "AGENTS.md"))).toBe(true);
     expect(existsSync(join(dir, "CONSTRAINTS.md"))).toBe(true);
     expect(existsSync(join(dir, "PROGRESS.md"))).toBe(true);
@@ -53,23 +52,19 @@ describe("harness init", () => {
     expect(existsSync(join(dir, ".github/workflows/harness.yml"))).toBe(true);
     expect(existsSync(join(dir, ".harnessrc.json"))).toBe(true);
 
-    // per-agent pointers
     expect(existsSync(join(dir, "CLAUDE.md"))).toBe(true);
     expect(existsSync(join(dir, ".codex/AGENTS.md"))).toBe(true);
     expect(existsSync(join(dir, ".opencode/AGENTS.md"))).toBe(true);
 
-    // Variable substitution worked, no leftover ${VAR}
     const agents = readFileSync(join(dir, "AGENTS.md"), "utf8");
     expect(agents).toContain("test-proj");
     expect(agents).not.toMatch(/\$\{[A-Z_]+\}/);
 
-    // .harnessrc.json is well-formed and stack-free
     const cfg = JSON.parse(readFileSync(join(dir, ".harnessrc.json"), "utf8"));
     expect(cfg.project_name).toBe("test-proj");
     expect(cfg).not.toHaveProperty("stack");
     expect(cfg.agents).toEqual(expect.arrayContaining(["claude-code", "codex", "opencode"]));
 
-    // features.json starts with WIP=1 + empty
     const feats = JSON.parse(readFileSync(join(dir, "features.json"), "utf8"));
     expect(feats.wip_limit).toBe(1);
     expect(feats.features).toEqual([]);
@@ -87,6 +82,17 @@ describe("harness doctor", () => {
     const max = Number.parseInt(m![2]!, 10);
     expect(max).toBe(30);
     expect(got).toBeGreaterThanOrEqual(18);
+  });
+
+  it("scores at least 25/30 on a freshly init'd repo (regression bar)", () => {
+    const dir = makeTmp();
+    execSync(`node ${CLI} init ${dir} --yes --agents claude-code,codex,opencode --name r-test`, {
+      stdio: "pipe",
+    });
+    const out = execSync(`node ${CLI} doctor ${dir}`, { encoding: "utf8" });
+    const m = out.match(/Total:\s+(\d+)\/30/);
+    expect(m).toBeTruthy();
+    expect(Number.parseInt(m![1]!, 10)).toBeGreaterThanOrEqual(25);
   });
 });
 
@@ -127,7 +133,6 @@ describe("harness feature", () => {
     });
     execSync(`node ${CLI} feature start F01`, { stdio: "pipe", cwd: dir });
 
-    // Trying to start F02 while F01 is active → must fail
     let blocked = false;
     try {
       execSync(`node ${CLI} feature start F02`, { stdio: "pipe", cwd: dir });
@@ -136,10 +141,42 @@ describe("harness feature", () => {
     }
     expect(blocked).toBe(true);
 
-    // feature done F01 with verification "true" should succeed
     execSync(`node ${CLI} feature done F01`, { stdio: "pipe", cwd: dir });
     const feats = JSON.parse(readFileSync(join(dir, "features.json"), "utf8"));
     const f01 = feats.features.find((f: { id: string }) => f.id === "F01");
     expect(f01.state).toBe("passing");
+  });
+});
+
+describe("harness CLI: unknown command handling", () => {
+  it("typo'd command exits non-zero with a 'did you mean' suggestion", () => {
+    let combined = "";
+    let exit = 0;
+    try {
+      execSync(`node ${CLI} docter`, { encoding: "utf8", stdio: "pipe" });
+    } catch (e) {
+      const err = e as { status: number; stderr: Buffer | string; stdout: Buffer | string };
+      exit = err.status;
+      const errStr =
+        typeof err.stderr === "string" ? err.stderr : (err.stderr?.toString("utf8") ?? "");
+      const outStr =
+        typeof err.stdout === "string" ? err.stdout : (err.stdout?.toString("utf8") ?? "");
+      combined = errStr + outStr;
+    }
+    expect(exit).toBeGreaterThan(0);
+    expect(combined).toMatch(/Unknown command/);
+    expect(combined).toMatch(/Did you mean: doctor/);
+  });
+
+  it("--help exits 0 with usage block", () => {
+    const out = execSync(`node ${CLI} --help`, { encoding: "utf8" });
+    expect(out).toContain("Usage:");
+    expect(out).toContain("init");
+    expect(out).toContain("doctor");
+  });
+
+  it("no args exits 0 with usage block", () => {
+    const out = execSync(`node ${CLI}`, { encoding: "utf8" });
+    expect(out).toContain("Usage:");
   });
 });
