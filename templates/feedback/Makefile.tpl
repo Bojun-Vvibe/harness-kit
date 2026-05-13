@@ -16,13 +16,15 @@
 #   make build      build for production
 #   make check      lint + typecheck + test + build (the bar)
 #   make clean      remove build artifacts
-#   make exit-clean L12 5-dimension session-end check
-#   make session-start  L06 read state + briefing
-#   make session-end MSG="..."  L12 stamp PROGRESS + exit-clean
+#
+# Optional harness scripts (not Make targets — call directly):
+#   bash scripts/session-init.sh       # L06 read state + briefing
+#   bash scripts/exit-clean.sh         # L12 5-dimension session-end check
+#   bash scripts/validate-feature.sh <id>   # run a feature's verification command
+#   cat .harness/bootstrap-prompt.txt  # re-read the bootstrap prompt
 
 .PHONY: help \
-        setup dev test e2e lint typecheck build check clean \
-        exit-clean session-start session-end
+        setup dev test e2e lint typecheck build check clean
 
 help:
 	@echo "${PROJECT_NAME} — common targets (harness-kit):"
@@ -37,13 +39,14 @@ help:
 	@echo "  make check         lint + typecheck + test + build"
 	@echo "  make clean         remove build artifacts"
 	@echo ""
-	@echo "Harness protocol:"
-	@echo "  make exit-clean    L12 5-dimension session-end check"
-	@echo "  make session-start L06 read state + briefing"
-	@echo "  make session-end MSG='...'  L12 stamp PROGRESS + exit-clean"
+	@echo "Harness scripts (not Make targets — bash directly):"
+	@echo "  bash scripts/session-init.sh       L06 briefing"
+	@echo "  bash scripts/exit-clean.sh         L12 5-dim end-of-session check"
+	@echo "  bash scripts/validate-feature.sh <id>   run a feature's verification"
+	@echo "  cat  .harness/bootstrap-prompt.txt re-read the bootstrap prompt"
 	@echo ""
 	@echo "Or use the harness CLI directly:"
-	@echo "  harness doctor / harness feature ? / harness session ?"
+	@echo "  harness doctor     score the harness (5 subsystems + cold-start)"
 
 # --- Project-specific targets (FILL IN with real commands for THIS project) ---
 
@@ -83,14 +86,3 @@ check: lint typecheck test build
 clean:
 	@echo "TODO: replace with your clean command"
 	@rm -rf .cache .tmp coverage 2>/dev/null || true
-
-# --- Harness protocol targets (provided by harness-kit; do not edit) ---
-
-exit-clean:
-	@bash scripts/exit-clean.sh
-
-session-start:
-	@harness session start
-
-session-end:
-	@harness session end "$(MSG)"

@@ -53,13 +53,13 @@ harness inject               # 老项目（默认 dry-run）
 
 # 或者零安装用 npx ───────────────────────────────────────────────
 # 注意：npx 只在那一次调用里暴露 `harness` 命令。
-# 生成的 PROGRESS.md / Makefile / scripts 都调 `harness ...`，
+# 生成的 Makefile / scripts 都引用 `harness doctor`，
 # 所以你最终还是会想全局装一次。
 npx harness-kit init
 npx harness-kit inject --apply
 ```
 
-如果你用了 `npx`，然后跑 `harness doctor` 或 `make session-start` 报 "command not found: harness"，全局装一次就好：
+如果你用了 `npx`，然后跑 `harness doctor` 报 "command not found: harness"，全局装一次就好：
 
 ```bash
 npm install -g harness-kit
@@ -71,13 +71,16 @@ npm install -g harness-kit
 
 脚手架里到处是 TODO 占位。**别手动填**。
 
-**`harness init` 跑完会自动把这段 prompt 直接打印到终端**，并存一份到 `.harness/bootstrap-prompt.txt`。你也可以随时重新打印：
+**`harness init` 跑完会自动把这段 prompt 直接打印到终端**，并存一份到 `.harness/bootstrap-prompt.txt`。随时再看：
 
 ```bash
-harness prompt              # 自动用系统语言（LANG）
-harness prompt --lang zh    # 强制中文
-harness prompt --lang en    # 强制英文
-# en | zh | ja | ko | es | pt | fr | de
+cat .harness/bootstrap-prompt.txt   # init 时打印的那份原文
+```
+
+想 init 时直接出指定语言的 prompt，传 `--lang`：
+
+```bash
+harness init --lang zh   # en | zh | ja | ko | es | pt | fr | de
 ```
 
 下面是中文版 prompt，方便参考——在你的 coding agent（Claude Code / Codex / OpenCode / Cursor / Aider）里打开项目，把它整段粘进去：
@@ -107,13 +110,16 @@ harness prompt --lang en    # 强制英文
    换成 5–15 条对 THIS 项目为真的硬约束。从已有测试、lint 配置、CI、错误
    处理代码、ADR 里推导出来。不适用的示例直接删。
 
-6. features.json 不要自己加 feature。等用户告诉你要做什么，然后用
-   `harness feature add` 命令——永远不要直接编辑 JSON。
+6. features.json 暂时不要自己加 feature。等用户告诉你要做什么。要加的时候，
+   严格按 FEATURES.md 里的规则来——那是编辑 features.json 的契约（状态机、
+   WIP=1、verification 门控、反模式）。先读一遍，再动手。
 
 7. 全部完成后验证并盖章：
    - 跑 `make check` —— 必须 exit 0
    - 跑 `harness doctor` —— 分数必须 ≥ 24/30
-   - 跑 `harness session end "harness-kit bootstrap：为 <项目名> 填好脚手架"`
+   - 在 PROGRESS.md 末尾追加一段 `## Session <ISO 时间戳>`，写清楚做了什么
+     （bootstrap：为 <项目名> 填好脚手架）
+   - 跑 `bash scripts/exit-clean.sh` —— 必须 exit 0
 
 bootstrap 期间的硬规则：
 - WIP = 1。不要开始写新功能。
@@ -128,19 +134,24 @@ bootstrap 期间的硬规则：
 
 ## 命令
 
+CLI 故意做得极小：两个脚手架命令 + 两个诊断命令。其余日常工作都在生成出来的仓库里——markdown + 脚本，可读、可 grep、可改。
+
 | 命令 | 干什么 |
 |---|---|
-| `harness init [dir]` | 全新项目装 harness（交互式），写入约 17 个文件 |
+| `harness init [dir]` | 全新项目装 harness（交互式），写入约 18 个文件。结束时自动打印 bootstrap prompt |
 | `harness inject [dir]` | 给老项目注入。默认 dry-run；`--apply` 真正写入。已有 `AGENTS.md` / `Makefile` 安全合并 |
 | `harness doctor [dir]` | 给五子系统每项打分（满分 5），加冷启动测试（5 个问题）|
 | `harness clean [dir]` | 跑 L12 五维度 exit-clean（构建/测试/进度/工件/启动路径）|
-| `harness feature add` | 新增一个 feature，必须填 id + behavior + verification 命令 |
-| `harness feature list` | 列出所有 feature 和状态 |
-| `harness feature start <id>` | 标为 active，**强制 WIP=1** |
-| `harness feature done <id>` | 跑 verification 命令，仅退出 0 才标为 passing |
-| `harness feature block <id> <reason>` | 标为 blocked 并记录原因 |
-| `harness session start` | L06 入场：读状态 + 工具自检 + 简报 |
-| `harness session end ["summary"]` | L12 在 PROGRESS 盖章 + 跑 exit-clean |
+
+init 之后基本不再需要 `harness` CLI。日常工作流都在：
+
+| 操作 | 在哪做 |
+|---|---|
+| 管理 feature（add / start / done / block）| 直接编辑 `features.json`，按 `FEATURES.md` 里的规则 |
+| 验证 feature 真的做完了 | `bash scripts/validate-feature.sh <id>` |
+| Session 开始的简报 | `bash scripts/session-init.sh` |
+| Session 结束的检查 | 在 `PROGRESS.md` 加一段，再 `bash scripts/exit-clean.sh` |
+| 再看一遍 bootstrap prompt | `cat .harness/bootstrap-prompt.txt` |
 
 ---
 
@@ -149,7 +160,7 @@ bootstrap 期间的硬规则：
 | 子系统 | 生成文件 | 讲义 |
 |---|---|---|
 | **指令** | `AGENTS.md`, `CONSTRAINTS.md`, `docs/architecture.md`, `docs/decisions.md`, `docs/testing-standards.md` + 各 agent 路由文件 | L02 / L04 |
-| **状态** | `PROGRESS.md`, `features.json`, `QUALITY.md` | L05 / L08 / L12 |
+| **状态** | `PROGRESS.md`, `features.json`, `FEATURES.md`, `QUALITY.md` | L05 / L08 / L12 |
 | **反馈** | `Makefile`, `scripts/exit-clean.sh`, `scripts/session-init.sh`, `scripts/validate-feature.sh`, `scripts/e2e-check.sh` | L02 / L09 / L10 |
 | **可观测** | `docs/templates/sprint-contract.md`, `docs/templates/rubric.md` | L11 |
 | **治理** | `CONSTRAINTS.md`, `.github/workflows/harness.yml`, `.harnessrc.json` | L03 / L12 |
@@ -158,9 +169,9 @@ bootstrap 期间的硬规则：
 
 ## 三个不容讨价还价的强约束
 
-1. **WIP = 1**：`features.json` 同时只能有一个 feature 处于 `active`。第二个想 `start` 直接被拒。彻底干掉「同时启动六件事，零件做完」的失败模式（L07）。
+1. **WIP = 1**：`features.json` 同时只能有一个 feature 处于 `active`。这条规则写在 `FEATURES.md` 里，靠 agent 自律 + git diff review 执行。彻底干掉「同时启动六件事，零件做完」的失败模式（L07）。
 
-2. **完成的唯一路径是 verification**：每个 feature 必须有 verification 命令。`harness feature done <id>` 跑这条命令，只有退出码 0 才标 passing。「我看着没问题」≠ done（L09）。
+2. **完成的唯一路径是 verification**：每个 feature 必须有 verification 命令。只有 `bash scripts/validate-feature.sh <id>` 退出码 0 才能标 passing。「我看着没问题」≠ done（L09）。
 
 3. **干净退场是「完成」的一部分**：`scripts/exit-clean.sh` 五维度检查（构建/测试/PROGRESS 是否最近更新/无残留临时文件/启动路径可调）。CI 里跑同一个脚本（L12）。
 

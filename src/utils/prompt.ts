@@ -59,11 +59,7 @@ export function printPrompt(prompt: string, lang: SupportedLang): void {
   log.blank();
   console.log(`${sepBot}  ${c.green("END PROMPT")}  ${sepBot}`);
   log.blank();
-  log.dim(
-    `Tip: re-print anytime with ${c.cyan("harness prompt")} (use ${c.cyan(
-      "--lang en|zh|ja|ko|es|pt|fr|de",
-    )} to switch language).`,
-  );
+  log.dim(`Tip: re-read this prompt anytime with ${c.cyan(`cat ${SAVE_PATH}`)}.`);
   log.blank();
 }
 

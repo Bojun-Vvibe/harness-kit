@@ -8,7 +8,7 @@
 
 ## Current state
 
-- **Last commit**: _(updated automatically by `harness session end`)_
+- **Last commit**: _(append your latest hash here at session end)_
 - **Branch**: _(e.g., `main`)_
 - **Build**: _(passing | failing — what's failing)_
 - **Tests**: _(N/M passing)_
@@ -28,6 +28,6 @@
 ## Session ${DATE} — initial setup
 
 - Adopted [harness-kit](https://github.com/Bojun-Vvibe/harness-kit) as the agent harness.
-- Generated initial AGENTS.md / CONSTRAINTS.md / features.json / Makefile / scripts.
+- Generated initial AGENTS.md / CONSTRAINTS.md / FEATURES.md / features.json / Makefile / scripts.
 - TODO: replace all `> **TODO**:` markers with project-specific content.
-- TODO: add the first real feature with `harness feature add`.
+- TODO: add the first real feature in `features.json` per the rules in `FEATURES.md`.

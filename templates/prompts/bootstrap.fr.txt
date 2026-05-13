@@ -26,14 +26,18 @@ Ta mission est de rendre ce harnais réel pour CE projet.
    tests existants, configs lint, CI, gestionnaires d'erreur et ADRs. Supprime
    les exemples qui ne s'appliquent pas.
 
-6. Dans features.json, n'ajoute PAS de features toi-même. Attends que l'humain
-   te dise quoi construire et utilise alors `harness feature add` — ne modifie
-   jamais le JSON directement.
+6. Dans features.json, n'ajoute PAS encore de features toi-même. Attends que
+   l'humain te dise quoi construire. Quand il le dira, suis strictement les
+   règles de FEATURES.md pour ajouter l'entrée — ce fichier est le contrat
+   pour éditer features.json (machine d'état, WIP=1, vérification obligatoire,
+   anti-patterns). Lis-le une fois, puis agis.
 
 7. Une fois fini, vérifie et tamponne :
    - lance `make check` — doit sortir 0
    - lance `harness doctor` — la note doit être au moins 24/30
-   - lance `harness session end "harness-kit bootstrap : échafaudage rempli pour <project name>"`
+   - ajoute un bloc `## Session <timestamp ISO>` à la fin de PROGRESS.md
+     décrivant ce que tu as fait (bootstrap : échafaudage rempli pour <project name>)
+   - lance `bash scripts/exit-clean.sh` — doit sortir 0
 
 Règles dures pendant ce bootstrap :
 - WIP = 1. Ne commence pas à coder de nouvelles features.

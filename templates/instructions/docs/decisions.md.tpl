@@ -15,8 +15,7 @@
 - **Alternatives considered**:
   - Hand-written `AGENTS.md` only — too fragile, drifts.
   - spec-kitty — heavier, opinionated mission/WP workflow not needed yet.
-- **Constraint**: Once `features.json` exists, agents must use `harness feature` commands
-  to mutate state, not edit JSON directly.
+- **Constraint**: Edits to `features.json` follow the rules in `FEATURES.md` (state machine, WIP=1, verification gating).
 
 ---
 

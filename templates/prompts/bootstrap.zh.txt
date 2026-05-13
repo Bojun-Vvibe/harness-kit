@@ -22,13 +22,16 @@
    换成 5–15 条对 THIS 项目为真的硬约束。从已有测试、lint 配置、CI、错误
    处理代码、ADR 里推导出来。不适用的示例直接删。
 
-6. features.json 不要自己加 feature。等用户告诉你要做什么，然后用
-   `harness feature add` 命令——永远不要直接编辑 JSON。
+6. features.json 暂时不要自己加 feature。等用户告诉你要做什么。要加的时候，
+   严格按 FEATURES.md 里的规则来——那是编辑 features.json 的契约（状态机、
+   WIP=1、verification 门控、反模式）。先读一遍，再动手。
 
 7. 全部完成后验证并盖章：
    - 跑 `make check` —— 必须 exit 0
    - 跑 `harness doctor` —— 分数必须 ≥ 24/30
-   - 跑 `harness session end "harness-kit bootstrap：为 <项目名> 填好脚手架"`
+   - 在 PROGRESS.md 末尾追加一段 `## Session <ISO 时间戳>`，写清楚做了什么
+     （bootstrap：为 <项目名> 填好脚手架）
+   - 跑 `bash scripts/exit-clean.sh` —— 必须 exit 0
 
 bootstrap 期间的硬规则：
 - WIP = 1。不要开始写新功能。

@@ -23,14 +23,17 @@
    프로젝트에 참인 5–15 개의 강제 규칙으로 교체하세요. 기존 테스트, lint 설정,
    CI, 에러 처리, ADR 에서 도출하세요. 적용되지 않는 예시는 삭제하세요.
 
-6. features.json 에 직접 feature 를 추가하지 마세요. 사용자가 무엇을 만들지
-   알려줄 때까지 기다린 후 `harness feature add` 를 사용하세요 — JSON 을 직접
-   편집하면 안 됩니다.
+6. features.json 에 직접 feature 를 아직 추가하지 마세요. 사용자가 무엇을
+   만들지 알려줄 때까지 기다리세요. 추가할 때는 FEATURES.md 의 규칙을
+   엄격히 따르세요 — 그 파일이 features.json 편집의 계약(상태 머신, WIP=1,
+   verification 게이트, 안티패턴)입니다. 한 번 읽고 행동하세요.
 
 7. 모두 끝나면 검증하고 도장 찍기:
    - `make check` 실행 — exit 0 필수
    - `harness doctor` 실행 — 점수 24/30 이상 필수
-   - `harness session end "harness-kit bootstrap: <project name> 스캐폴딩 채움"` 실행
+   - PROGRESS.md 끝에 `## Session <ISO 타임스탬프>` 블록을 추가하고 무엇을
+     했는지 적기 (bootstrap: <project name> 스캐폴딩 채움)
+   - `bash scripts/exit-clean.sh` 실행 — exit 0 필수
 
 부트스트랩 동안의 강제 규칙:
 - WIP = 1. 새 기능 코딩을 시작하지 마세요.

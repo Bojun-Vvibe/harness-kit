@@ -25,14 +25,18 @@ Tu trabajo es hacer este harness real para ESTE proyecto.
    tests existentes, configs de lint, CI, manejadores de error y ADRs. Borra los
    ejemplos que no apliquen.
 
-6. En features.json, NO añadas features tú mismo. Espera a que el humano te diga
-   qué construir y entonces usa `harness feature add` — nunca edites el JSON
-   directamente.
+6. En features.json, NO añadas features tú mismo todavía. Espera a que el humano
+   te diga qué construir. Cuando lo haga, sigue las reglas de FEATURES.md para
+   añadir la entrada — ese archivo es el contrato para editar features.json
+   (máquina de estados, WIP=1, verificación obligatoria, anti-patrones). Léelo
+   una vez, luego actúa.
 
 7. Cuando termines, verifica y sella:
    - ejecuta `make check` — debe salir 0
    - ejecuta `harness doctor` — la nota debe ser al menos 24/30
-   - ejecuta `harness session end "harness-kit bootstrap: andamiaje rellenado para <project name>"`
+   - añade un bloque `## Session <timestamp ISO>` al final de PROGRESS.md
+     describiendo lo que hiciste (bootstrap: andamiaje rellenado para <project name>)
+   - ejecuta `bash scripts/exit-clean.sh` — debe salir 0
 
 Reglas duras durante este bootstrap:
 - WIP = 1. No empieces a programar nuevas features.

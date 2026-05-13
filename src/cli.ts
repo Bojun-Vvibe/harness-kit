@@ -2,17 +2,8 @@ import { resolve } from "node:path";
 import { cac } from "cac";
 import { runClean } from "./commands/clean.js";
 import { runDoctor } from "./commands/doctor.js";
-import {
-  runFeatureAdd,
-  runFeatureBlock,
-  runFeatureDone,
-  runFeatureList,
-  runFeatureStart,
-} from "./commands/feature.js";
 import { runInit } from "./commands/init.js";
 import { runInject } from "./commands/inject.js";
-import { runPrompt } from "./commands/prompt.js";
-import { runSessionEnd, runSessionStart } from "./commands/session.js";
 import type { AgentId } from "./types.js";
 import { log } from "./utils/log.js";
 
@@ -47,33 +38,7 @@ async function getVersion(): Promise<string> {
   return "0.0.0";
 }
 
-/**
- * cac doesn't natively support multi-word commands.
- * Rewrite `harness feature add ...` → `harness feature-add ...` etc.
- * We do this at the argv level so the public UX stays natural.
- */
-function rewriteArgv(argv: string[]): string[] {
-  const out = [...argv];
-  // process.argv = [node, cli.cjs, ...userArgs]
-  if (out.length >= 4) {
-    const a = out[2];
-    const b = out[3];
-    const groups: Record<string, string[]> = {
-      feature: ["add", "list", "start", "done", "block"],
-      session: ["start", "end"],
-    };
-    if (a && b && groups[a]?.includes(b)) {
-      out.splice(2, 2, `${a}-${b}`);
-    }
-  }
-  return out;
-}
-
 async function main(): Promise<void> {
-  process.argv = rewriteArgv(process.argv);
-  if (process.env.HARNESS_DEBUG) {
-    console.error("[debug] argv after rewrite:", process.argv);
-  }
   const cli = cac("harness");
   const version = await getVersion();
 
@@ -115,13 +80,6 @@ async function main(): Promise<void> {
     });
 
   cli
-    .command("prompt", "Print the bootstrap prompt to paste into your AI agent")
-    .option("--lang <lang>", "Override language: en|zh|ja|ko|es|pt|fr|de")
-    .action(async (opts) => {
-      await runPrompt(resolve("."), opts.lang);
-    });
-
-  cli
     .command("doctor [dir]", "Score the harness across 5 subsystems + cold-start test")
     .action(async (dir: string | undefined) => {
       await runDoctor(resolve(dir ?? "."));
@@ -134,102 +92,46 @@ async function main(): Promise<void> {
       if (!res.passed) process.exit(1);
     });
 
-  cli
-    .command("feature-add", "Add a new feature item (id, behavior, verification)")
-    .option("--id <id>", "Feature id, e.g., F03")
-    .option("--behavior <text>", "One-sentence behavior description")
-    .option("--verification <cmd>", "Shell command that exits 0 when feature is done")
-    .action(async (opts) => {
-      await runFeatureAdd(resolve("."), {
-        id: opts.id,
-        behavior: opts.behavior,
-        verification: opts.verification,
-      });
-    });
-
-  cli.command("feature-list", "List all features and their states").action(async () => {
-    await runFeatureList(resolve("."));
-  });
-
-  cli
-    .command("feature-start <id>", "Mark a feature as active (enforces WIP=1)")
-    .action(async (id: string) => {
-      await runFeatureStart(resolve("."), id);
-    });
-
-  cli
-    .command("feature-done <id>", "Run verification and mark feature as passing")
-    .action(async (id: string) => {
-      await runFeatureDone(resolve("."), id);
-    });
-
-  cli
-    .command("feature-block <id> <reason>", "Mark feature as blocked with reason")
-    .action(async (id: string, reason: string) => {
-      await runFeatureBlock(resolve("."), id, reason);
-    });
-
-  cli
-    .command("session-start", "L06 init phase: read state + sanity check + briefing")
-    .action(async () => {
-      await runSessionStart(resolve("."));
-    });
-
-  cli
-    .command("session-end [summary]", "L12 stamp PROGRESS + run exit-clean")
-    .action(async (summary: string | undefined) => {
-      await runSessionEnd(resolve("."), summary);
-    });
-
   cli.help();
   cli.version(version);
   cli.parse(process.argv);
 
   // cac silently exits 0 for unknown or no commands. Make it loud and helpful.
   const userArgs = process.argv.slice(2);
-  // If user just typed `harness` with no command, show the help block.
   if (userArgs.length === 0) {
     cli.outputHelp();
     return;
   }
-  // If user passed --help or --version, cac already handled it.
   if (userArgs.some((a) => ["-h", "--help", "-v", "--version"].includes(a))) {
     return;
   }
-  // matchedCommand is set by cac iff a command was matched.
   // biome-ignore lint/suspicious/noExplicitAny: cac internal field
   const matched = (cli as any).matchedCommand !== undefined;
   if (!matched) {
     const typed = userArgs[0] ?? "";
-    const all = [
-      "init",
-      "inject",
-      "doctor",
-      "clean",
-      "feature add",
-      "feature list",
-      "feature start",
-      "feature done",
-      "feature block",
-      "session start",
-      "session end",
-    ];
+    const all = ["init", "inject", "doctor", "clean"];
     const suggestion = closest(typed, all);
     log.err(`Unknown command: ${typed}`);
     if (suggestion) {
       log.warn(`Did you mean: ${suggestion}?`);
     }
     log.dim("Run `harness --help` to see all commands.");
+    log.dim(
+      "Note: feature/session/prompt subcommands were removed in v0.2.0. " +
+        "Workflow lives in markdown (FEATURES.md, AGENTS.md) + scripts/.",
+    );
     process.exit(2);
   }
-} /**
+}
+
+/**
  * Cheap edit-distance based suggestion. Returns the closest candidate
  * within 3 edits, or undefined.
  */
 function closest(input: string, candidates: string[]): string | undefined {
   let best: { name: string; dist: number } | undefined;
   for (const c of candidates) {
-    const d = editDistance(input, c.split(" ")[0]!);
+    const d = editDistance(input, c);
     if (d <= 3 && (!best || d < best.dist)) {
       best = { name: c, dist: d };
     }

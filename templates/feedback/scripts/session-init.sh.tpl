@@ -53,4 +53,4 @@ if [ -d .git ]; then
 fi
 echo ""
 
-echo "✓ Ready. Pick the next active feature with: harness feature list"
+echo "✓ Ready. Read FEATURES.md for the rules, then pick up the active feature in features.json."

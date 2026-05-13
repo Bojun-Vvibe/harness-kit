@@ -61,7 +61,7 @@ npx harness-kit init
 npx harness-kit inject --apply
 ```
 
-`npx` 로 실행한 뒤 `harness doctor` 또는 `make session-start` 에서 "command not found: harness" 가 나오면 글로벌 설치하세요:
+`npx` 로 실행한 뒤 `harness doctor` 에서 "command not found: harness" 가 나오면 글로벌 설치하세요:
 
 ```bash
 npm install -g harness-kit
@@ -99,14 +99,17 @@ npm install -g harness-kit
    프로젝트에 참인 5–15 개의 강제 규칙으로 교체하세요. 기존 테스트, lint 설정,
    CI, 에러 처리, ADR 에서 도출하세요. 적용되지 않는 예시는 삭제하세요.
 
-6. features.json 에 직접 feature 를 추가하지 마세요. 사용자가 무엇을 만들지
-   알려줄 때까지 기다린 후 `harness feature add` 를 사용하세요 — JSON 을 직접
-   편집하면 안 됩니다.
+6. features.json 에 직접 feature 를 아직 추가하지 마세요. 사용자가 무엇을
+   만들지 알려줄 때까지 기다리세요. 추가할 때는 FEATURES.md 의 규칙을
+   엄격히 따르세요 — 그 파일이 features.json 편집의 계약(상태 머신, WIP=1,
+   verification 게이트, 안티패턴)입니다. 한 번 읽고 행동하세요.
 
 7. 모두 끝나면 검증하고 도장 찍기:
    - `make check` 실행 — exit 0 필수
    - `harness doctor` 실행 — 점수 24/30 이상 필수
-   - `harness session end "harness-kit bootstrap: <project name> 스캐폴딩 채움"` 실행
+   - PROGRESS.md 끝에 `## Session <ISO 타임스탬프>` 블록을 추가하고 무엇을
+     했는지 적기 (bootstrap: <project name> 스캐폴딩 채움)
+   - `bash scripts/exit-clean.sh` 실행 — exit 0 필수
 
 부트스트랩 동안의 강제 규칙:
 - WIP = 1. 새 기능 코딩을 시작하지 마세요.
@@ -121,19 +124,26 @@ npm install -g harness-kit
 
 ## 명령
 
+CLI 는 의도적으로 매우 작습니다: 스캐폴딩 2 개 + 진단 2 개. 일상 작업은
+모두 생성된 저장소 안의 markdown + 스크립트에 살아 있어 — 읽고, grep 하고,
+수정할 수 있습니다.
+
 | 명령 | 하는 일 |
 |---|---|
-| `harness init [dir]` | 새 하니스를 스캐폴드 (대화형). 약 17 개 파일 작성 |
+| `harness init [dir]` | 새 하니스를 스캐폴드 (대화형). 약 18 개 파일 작성. 끝에 bootstrap prompt 자동 출력 |
 | `harness inject [dir]` | 기존 저장소에 하니스 추가. 기본은 dry-run; `--apply` 로 실제 작성. 기존 `AGENTS.md` / `Makefile` 안전 병합 |
 | `harness doctor [dir]` | 5 서브시스템을 각 5 점 만점으로 채점 + 콜드 스타트 테스트 (5 문항) |
 | `harness clean [dir]` | L12 5 차원 exit-clean 실행 (빌드 / 테스트 / 진행도 / 잔여물 / 시작 경로) |
-| `harness feature add` | id + behavior + verification 명령으로 새 feature 추가 |
-| `harness feature list` | 모든 feature 와 상태 표시 |
-| `harness feature start <id>` | 기능을 active 로 표시. **WIP=1 강제** |
-| `harness feature done <id>` | verification 실행. exit 0 일 때만 passing |
-| `harness feature block <id> <reason>` | blocked 로 표시하고 사유 기록 |
-| `harness session start` | L06 입장: 상태 읽고, 도구 점검, 브리핑 |
-| `harness session end ["summary"]` | L12 PROGRESS 도장 + exit-clean 실행 |
+
+init 후에는 `harness` CLI 가 거의 필요 없습니다. 일상 워크플로는:
+
+| 동작 | 어디서 |
+|---|---|
+| feature 관리 (add / start / done / block) | `features.json` 직접 편집, `FEATURES.md` 의 규칙에 따름 |
+| feature 가 정말 끝났는지 검증 | `bash scripts/validate-feature.sh <id>` |
+| 세션 시작 브리핑 | `bash scripts/session-init.sh` |
+| 세션 종료 점검 | `PROGRESS.md` 에 추가, `bash scripts/exit-clean.sh` |
+| bootstrap prompt 다시 보기 | `cat .harness/bootstrap-prompt.txt` |
 
 ---
 
@@ -151,9 +161,9 @@ npm install -g harness-kit
 
 ## 이 킷이 양보하지 않는 3 가지 (에이전트와 다툴 필요 없게)
 
-1. **WIP = 1.** `features.json` 은 동시에 한 feature 만 `active` 가 가능합니다. 다른 게 active 일 때 `harness feature start` 호출은 거부됩니다. 「6 가지를 동시에 시작해서 0 가지를 끝내는」 실패 모드를 차단합니다 (L07).
+1. **WIP = 1.** `features.json` 은 동시에 한 feature 만 `active` 가 가능합니다. 이 규칙은 `FEATURES.md` 에 적혀 있고, 에이전트의 자율 + git diff 리뷰로 강제됩니다. 「6 가지를 동시에 시작해서 0 가지를 끝내는」 실패 모드를 차단합니다 (L07).
 
-2. **`done` 으로 가는 유일한 길은 verification.** 모든 feature 는 `verification` 셸 명령이 필수. `harness feature done <id>` 가 그 명령을 실행하고 exit 0 일 때만 `passing` 으로 표시. 「내 보기엔 괜찮아」 → done 안 됨 (L09).
+2. **`passing` 으로 가는 유일한 길은 verification.** 모든 feature 는 `verification` 셸 명령이 필수. `bash scripts/validate-feature.sh <id>` 가 exit 0 일 때만 `passing` 으로 표시 가능. 「내 보기엔 괜찮아」 → done 안 됨 (L09).
 
 3. **깨끗한 종료가 「완료」의 일부.** `scripts/exit-clean.sh` 가 세션 종료 시 5 가지를 점검합니다 (빌드 / 테스트 / PROGRESS 신선도 / 잔여 산출물 없음 / 시작 경로 호출 가능). CI 도 같은 스크립트를 실행합니다 (L12).
 

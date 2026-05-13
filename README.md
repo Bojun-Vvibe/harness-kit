@@ -69,7 +69,7 @@ npx harness-kit inject --apply
 ```
 
 If you used `npx` and now see "command not found: harness" when running
-`harness doctor` or `make session-start`, install globally:
+`harness doctor`, install globally:
 
 ```bash
 npm install -g harness-kit
@@ -82,13 +82,16 @@ npm install -g harness-kit
 The scaffolding has TODO placeholders everywhere. Don't fill them by hand.
 
 **`harness init` automatically prints the bootstrap prompt at the end** and saves
-a copy to `.harness/bootstrap-prompt.txt`. You can also re-print it any time:
+a copy to `.harness/bootstrap-prompt.txt`. Re-read it any time:
 
 ```bash
-harness prompt              # uses your locale (LANG)
-harness prompt --lang en    # force English
-harness prompt --lang zh    # force Chinese
-# en | zh | ja | ko | es | pt | fr | de
+cat .harness/bootstrap-prompt.txt   # the prompt as printed at init time
+```
+
+To get the prompt in a different language up front, pass `--lang`:
+
+```bash
+harness init --lang en   # en | zh | ja | ko | es | pt | fr | de
 ```
 
 For reference, here's the English version of the prompt — open the project
@@ -123,14 +126,18 @@ Your job is to make the harness real for THIS project.
    from existing tests, lint configs, CI, error handlers, and ADRs. Drop
    examples that don't apply.
 
-6. In features.json, do NOT add features yourself. Wait for the human to tell
-   you what to build, then use `harness feature add` — never edit the JSON
-   by hand.
+6. In features.json, do NOT add features yourself yet. Wait for the human to tell
+   you what to build. When they do, follow the rules in FEATURES.md to add
+   the entry — that file is the contract for editing features.json (state
+   machine, WIP=1, verification gating, anti-patterns). Read it once, then
+   act.
 
 7. When done, verify and stamp:
    - run `make check` — must exit 0
    - run `harness doctor` — score must be at least 24/30
-   - run `harness session end "harness-kit bootstrap: filled scaffolding for <project name>"`
+   - append a `## Session <ISO timestamp>` block to PROGRESS.md describing what
+     you did (bootstrap: filled scaffolding for <project name>)
+   - run `bash scripts/exit-clean.sh` — must exit 0
 
 Hard rules during this bootstrap:
 - WIP = 1. Do not start coding new features.
@@ -145,19 +152,27 @@ Save it as a snippet so you can reuse it on every new repo you scaffold.
 
 ## Commands
 
+The CLI is intentionally tiny: two scaffolding commands and two diagnostics.
+Everything else lives in the generated repo as markdown + scripts you can
+read, grep, and modify.
+
 | Command | What it does |
 |---|---|
-| `harness init [dir]` | Scaffold a fresh harness (interactive). Writes ~17 files. |
+| `harness init [dir]` | Scaffold a fresh harness (interactive). Writes ~18 files. Prints the bootstrap prompt at the end. |
 | `harness inject [dir]` | Add a harness to an existing repo. Dry-run by default; `--apply` to write. Safe-merges existing `AGENTS.md` / `Makefile`. |
 | `harness doctor [dir]` | Score the 5 subsystems out of 5 each + cold-start test (5 questions). |
 | `harness clean [dir]` | Run the L12 5-dimension exit-clean (build / tests / progress / artifacts / startup). |
-| `harness feature add` | Add a feature with id + behavior + verification command. |
-| `harness feature list` | Show all features and their states. |
-| `harness feature start <id>` | Mark feature active. **Enforces WIP=1.** |
-| `harness feature done <id>` | Run verification. Only mark passing if it exits 0. |
-| `harness feature block <id> <reason>` | Mark blocked with a reason. |
-| `harness session start` | L06 init: read state, sanity-check tooling, print briefing. |
-| `harness session end ["summary"]` | L12 stamp PROGRESS + run exit-clean. |
+
+After init, you typically don't need the `harness` CLI again. The day-to-day
+workflow lives in:
+
+| Action | Where |
+|---|---|
+| Manage features (add / start / done / block) | Edit `features.json` per the rules in `FEATURES.md` |
+| Verify a feature is really done | `bash scripts/validate-feature.sh <id>` |
+| Session-start briefing | `bash scripts/session-init.sh` |
+| Session-end check | Append to `PROGRESS.md`, then `bash scripts/exit-clean.sh` |
+| Re-read the bootstrap prompt | `cat .harness/bootstrap-prompt.txt` |
 
 ---
 
@@ -166,7 +181,7 @@ Save it as a snippet so you can reuse it on every new repo you scaffold.
 | Subsystem | Files generated | Lecture |
 |---|---|---|
 | **Instructions** | `AGENTS.md`, `CONSTRAINTS.md`, `docs/architecture.md`, `docs/decisions.md`, `docs/testing-standards.md` + per-agent pointers | L02 / L04 |
-| **State** | `PROGRESS.md`, `features.json`, `QUALITY.md` | L05 / L08 / L12 |
+| **State** | `PROGRESS.md`, `features.json`, `FEATURES.md`, `QUALITY.md` | L05 / L08 / L12 |
 | **Feedback** | `Makefile`, `scripts/exit-clean.sh`, `scripts/session-init.sh`, `scripts/validate-feature.sh`, `scripts/e2e-check.sh` | L02 / L09 / L10 |
 | **Observability** | `docs/templates/sprint-contract.md`, `docs/templates/rubric.md` | L11 |
 | **Governance** | `CONSTRAINTS.md`, `.github/workflows/harness.yml`, `.harnessrc.json` | L03 / L12 |
@@ -175,17 +190,11 @@ Save it as a snippet so you can reuse it on every new repo you scaffold.
 
 ## Three things this kit insists on (so you don't have to argue with the agent)
 
-1. **WIP = 1.** `features.json` lets only one feature be `active` at a time.
-   Calling `harness feature start` while another is active is rejected. This
-   kills the "do six things at once, finish zero" failure mode (L07).
+1. **WIP = 1.** `features.json` may only have one feature in state `active` at a time. Documented in `FEATURES.md`; enforced by agent discipline + git diff review. This kills the "do six things at once, finish zero" failure mode (L07).
 
-2. **Verification is the only path to `done`.** Every feature must have a
-   `verification` shell command. `harness feature done <id>` runs it and only
-   marks `passing` on exit 0. No "looks ok to me" → done (L09).
+2. **Verification is the only path to `passing`.** Every feature must have a `verification` shell command. A feature only enters `passing` after `bash scripts/validate-feature.sh <id>` exits 0. No "looks ok to me" → done (L09).
 
-3. **Clean exit is part of "done".** `scripts/exit-clean.sh` checks five
-   things at session end (build / tests / PROGRESS recency / no stale
-   artifacts / startup path callable). The CI runs the same script (L12).
+3. **Clean exit is part of "done".** `scripts/exit-clean.sh` checks five things at session end (build / tests / PROGRESS recency / no stale artifacts / startup path callable). The CI runs the same script (L12).
 
 ---
 

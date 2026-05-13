@@ -89,6 +89,7 @@ export async function runInit(opts: InitOptions): Promise<void> {
   // 3b. State subsystem
   await writeFile("PROGRESS.md", await loadTpl("state/PROGRESS.md.tpl", vars));
   await writeFile("features.json", await loadTpl("state/features.json.tpl", vars));
+  await writeFile("FEATURES.md", await loadTpl("state/FEATURES.md.tpl", vars));
   await writeFile("QUALITY.md", await loadTpl("state/QUALITY.md.tpl", vars));
 
   // 3c. Feedback subsystem (stack-agnostic Makefile + scripts)

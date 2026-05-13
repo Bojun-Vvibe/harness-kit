@@ -26,14 +26,19 @@ Deine Aufgabe ist es, diesen Harness für DIESES Projekt real zu machen.
    Leite sie aus existierenden Tests, Lint-Configs, CI, Error-Handlern und ADRs
    ab. Lösche nicht zutreffende Beispiele.
 
-6. In features.json füge KEINE Features selbst hinzu. Warte, bis der Mensch dir
-   sagt, was zu bauen ist, und nutze dann `harness feature add` — bearbeite das
-   JSON niemals direkt.
+6. In features.json füge KEINE Features selbst hinzu, noch nicht. Warte, bis
+   der Mensch dir sagt, was zu bauen ist. Wenn es soweit ist, folge strikt den
+   Regeln in FEATURES.md, um den Eintrag hinzuzufügen — diese Datei ist der
+   Vertrag für das Editieren von features.json (Zustandsmaschine, WIP=1,
+   Verifikations-Gate, Anti-Patterns). Lies sie einmal, dann handle.
 
 7. Wenn fertig, verifiziere und siegele:
    - führe `make check` aus — muss exit 0
    - führe `harness doctor` aus — Score muss mindestens 24/30 sein
-   - führe `harness session end "harness-kit bootstrap: Scaffolding für <project name> ausgefüllt"` aus
+   - füge am Ende von PROGRESS.md einen `## Session <ISO-Zeitstempel>`-Block
+     hinzu und beschreibe, was du getan hast
+     (bootstrap: Scaffolding für <project name> ausgefüllt)
+   - führe `bash scripts/exit-clean.sh` aus — muss exit 0
 
 Harte Regeln während dieses Bootstraps:
 - WIP = 1. Beginne nicht mit dem Codieren neuer Features.

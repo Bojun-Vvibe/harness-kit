@@ -61,7 +61,7 @@ npx harness-kit init
 npx harness-kit inject --apply
 ```
 
-Si usaste `npx` y al ejecutar `harness doctor` o `make session-start` ves "command not found: harness", instálalo globalmente:
+Si usaste `npx` y al ejecutar `harness doctor` ves "command not found: harness", instálalo globalmente:
 
 ```bash
 npm install -g harness-kit
@@ -102,14 +102,18 @@ Tu trabajo es hacer este harness real para ESTE proyecto.
    tests existentes, configs de lint, CI, manejadores de error y ADRs. Borra los
    ejemplos que no apliquen.
 
-6. En features.json, NO añadas features tú mismo. Espera a que el humano te diga
-   qué construir y entonces usa `harness feature add` — nunca edites el JSON
-   directamente.
+6. En features.json, NO añadas features tú mismo todavía. Espera a que el humano
+   te diga qué construir. Cuando lo haga, sigue las reglas de FEATURES.md para
+   añadir la entrada — ese archivo es el contrato para editar features.json
+   (máquina de estados, WIP=1, verificación obligatoria, anti-patrones). Léelo
+   una vez, luego actúa.
 
 7. Cuando termines, verifica y sella:
    - ejecuta `make check` — debe salir 0
    - ejecuta `harness doctor` — la nota debe ser al menos 24/30
-   - ejecuta `harness session end "harness-kit bootstrap: andamiaje rellenado para <project name>"`
+   - añade un bloque `## Session <timestamp ISO>` al final de PROGRESS.md
+     describiendo lo que hiciste (bootstrap: andamiaje rellenado para <project name>)
+   - ejecuta `bash scripts/exit-clean.sh` — debe salir 0
 
 Reglas duras durante este bootstrap:
 - WIP = 1. No empieces a programar nuevas features.
@@ -124,19 +128,26 @@ Guárdalo como snippet para reusarlo en cada nuevo repo que andamies.
 
 ## Comandos
 
+El CLI es deliberadamente diminuto: dos comandos de andamiaje y dos de
+diagnóstico. Todo lo demás vive en el repo generado como markdown +
+scripts que puedes leer, grepear y modificar.
+
 | Comando | Qué hace |
 |---|---|
-| `harness init [dir]` | Andamia un harness desde cero (interactivo). Escribe ~17 archivos. |
+| `harness init [dir]` | Andamia un harness desde cero (interactivo). Escribe ~18 archivos. Imprime el bootstrap prompt al final. |
 | `harness inject [dir]` | Añade un harness a un repo existente. Por defecto dry-run; `--apply` escribe. Fusiona con seguridad `AGENTS.md` / `Makefile` existentes. |
 | `harness doctor [dir]` | Puntúa los 5 subsistemas sobre 5 cada uno + test de arranque-frío (5 preguntas). |
 | `harness clean [dir]` | Ejecuta el L12 exit-clean en 5 dimensiones (build / tests / progress / artefactos / startup). |
-| `harness feature add` | Añade una feature con id + behavior + comando de verification. |
-| `harness feature list` | Muestra todas las features y sus estados. |
-| `harness feature start <id>` | Marca feature como activa. **Impone WIP=1.** |
-| `harness feature done <id>` | Ejecuta verification. Solo marca passing si sale 0. |
-| `harness feature block <id> <reason>` | Marca como blocked con un motivo. |
-| `harness session start` | L06 init: lee estado, valida tooling, imprime briefing. |
-| `harness session end ["summary"]` | L12 sella PROGRESS + ejecuta exit-clean. |
+
+Después de init, normalmente no necesitas más el CLI `harness`. El día a día vive en:
+
+| Acción | Dónde |
+|---|---|
+| Gestionar features (add / start / done / block) | Editar `features.json` siguiendo las reglas de `FEATURES.md` |
+| Verificar que una feature está realmente hecha | `bash scripts/validate-feature.sh <id>` |
+| Briefing de inicio de sesión | `bash scripts/session-init.sh` |
+| Chequeo de fin de sesión | Añadir a `PROGRESS.md`, luego `bash scripts/exit-clean.sh` |
+| Releer el bootstrap prompt | `cat .harness/bootstrap-prompt.txt` |
 
 ---
 
@@ -154,9 +165,9 @@ Guárdalo como snippet para reusarlo en cada nuevo repo que andamies.
 
 ## Tres cosas en las que este kit insiste (para que no tengas que discutir con el agente)
 
-1. **WIP = 1.** `features.json` solo permite que una feature esté `active` a la vez. Llamar a `harness feature start` mientras otra está activa se rechaza. Esto mata el modo de fallo "hacer seis cosas a la vez, terminar cero" (L07).
+1. **WIP = 1.** `features.json` solo permite que una feature esté `active` a la vez. Esa regla está documentada en `FEATURES.md` y se hace cumplir por la disciplina del agente + la revisión del git diff. Esto mata el modo de fallo "hacer seis cosas a la vez, terminar cero" (L07).
 
-2. **Verification es el único camino a `done`.** Cada feature debe tener un comando `verification`. `harness feature done <id>` lo ejecuta y solo marca `passing` con exit 0. No "se ve bien" → done (L09).
+2. **Verification es el único camino a `passing`.** Cada feature debe tener un comando `verification`. Una feature solo entra en `passing` después de que `bash scripts/validate-feature.sh <id>` salga 0. No "se ve bien" → done (L09).
 
 3. **Salida limpia es parte de "done".** `scripts/exit-clean.sh` chequea cinco cosas al cerrar sesión (build / tests / frescura de PROGRESS / sin artefactos viejos / startup invocable). El CI ejecuta el mismo script (L12).
 

@@ -58,6 +58,7 @@ export async function runInject(opts: InjectOptions): Promise<void> {
   planFile("docs/testing-standards.md", "if-missing");
   planFile("PROGRESS.md", "if-missing");
   planFile("features.json", "if-missing");
+  planFile("FEATURES.md", "if-missing");
   planFile("QUALITY.md", "if-missing");
   planFile("Makefile", "merge-make");
   planFile("scripts/exit-clean.sh", "if-missing");
@@ -168,6 +169,7 @@ const TEMPLATE_MAP: Record<string, string> = {
   "docs/testing-standards.md": "instructions/docs/testing-standards.md.tpl",
   "PROGRESS.md": "state/PROGRESS.md.tpl",
   "features.json": "state/features.json.tpl",
+  "FEATURES.md": "state/FEATURES.md.tpl",
   "QUALITY.md": "state/QUALITY.md.tpl",
   Makefile: "feedback/Makefile.tpl",
   "scripts/exit-clean.sh": "feedback/scripts/exit-clean.sh.tpl",

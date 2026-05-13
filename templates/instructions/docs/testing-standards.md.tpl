@@ -44,7 +44,7 @@ end-to-end check (L10).
 
 ## Writing verification commands
 
-When you do `harness feature add`, the `verification` field must:
+When you add a feature to `features.json` (per the rules in [`FEATURES.md`](../../FEATURES.md)), its `verification` field must:
 
 1. Be a single shell command (chain with `&&` if needed).
 2. Exit 0 on success, non-zero on failure.

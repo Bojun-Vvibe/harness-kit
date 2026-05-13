@@ -20,10 +20,11 @@ make check     # lint + typecheck + tests + build (the full bar)
 ## Hard rules (read before editing anything)
 
 - See [`CONSTRAINTS.md`](./CONSTRAINTS.md) — non-negotiable rules. Violating these breaks the build.
+- See [`FEATURES.md`](./FEATURES.md) — the rulebook for editing `features.json` (state machine, WIP=1, verification gating).
 - WIP = 1. Only one feature in `features.json` may be in state `active` at a time. (L07)
 - A feature is **done** only when its `verification` command exits 0. Not "code looks ok". (L09)
-- Do not modify `features.json` state by hand — use `harness feature start|done|block`.
-- Before declaring victory, run `make check` AND `harness feature done <id>`. Both must pass.
+- To verify a feature, run: `bash scripts/validate-feature.sh <id>`.
+- Before declaring victory, run `make check` AND `bash scripts/validate-feature.sh <id>`. Both must pass.
 
 ## Deeper docs (read on demand)
 
@@ -37,6 +38,7 @@ make check     # lint + typecheck + tests + build (the full bar)
 
 - [`PROGRESS.md`](./PROGRESS.md) — what the last session did, what's blocked, what's next
 - [`features.json`](./features.json) — the spine: every feature with its verification command
+- [`FEATURES.md`](./FEATURES.md) — **how** to read/write `features.json` (rules, transitions, anti-patterns)
 - [`QUALITY.md`](./QUALITY.md) — per-module quality grade, where to focus next
 
 ## Session protocol
@@ -44,24 +46,27 @@ make check     # lint + typecheck + tests + build (the full bar)
 **At the start of every session:**
 
 ```bash
-harness session start
+bash scripts/session-init.sh        # read PROGRESS, sanity-check tooling, briefing
+cat .harness/bootstrap-prompt.txt   # (only on a fresh harness; re-read the bootstrap prompt)
 ```
-
-This reads `PROGRESS.md`, sanity-checks tooling, and prints a briefing.
 
 **At the end of every session:**
 
-```bash
-harness session end "what I did this session"
-```
+1. Append a short summary to `PROGRESS.md` under a `## Session <ISO timestamp>` heading. Cover: what was done, what's blocked, what's next.
+2. Run the L12 5-dimension exit-clean check:
 
-This stamps `PROGRESS.md` and runs the 5-dimension exit-clean check (L12).
-**Do not consider the session complete until exit-clean passes.**
+   ```bash
+   bash scripts/exit-clean.sh
+   ```
+
+   **Do not consider the session complete until exit-clean passes.**
+
+These are deliberately plain bash scripts and a markdown file edit, not CLI commands. The `harness` CLI is intentionally tiny — it scaffolds (`init` / `inject`) and diagnoses (`doctor` / `clean`). Everything else lives in this repo as text + scripts you can read, grep, and modify.
 
 ## When in doubt
 
 ```bash
 harness doctor    # 5-subsystem health score + cold-start test
-harness feature list
-make check
+make check        # lint + typecheck + tests + build
+cat features.json # what's in flight (read FEATURES.md for the rules)
 ```

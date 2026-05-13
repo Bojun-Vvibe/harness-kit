@@ -24,14 +24,18 @@
    とって真であるハードルール 5〜15 個に置き換えます。既存テスト・lint 設定・CI・
    エラーハンドリング・ADR から導出してください。該当しない例は削除します。
 
-6. features.json には自分で feature を追加しないでください。人間が「何を作るか」を
-   告げるのを待ち、その後 `harness feature add` を使ってください — JSON を直接編集
-   してはいけません。
+6. features.json には、まだ自分で feature を追加しないでください。人間が
+   「何を作るか」を告げるのを待ってください。追加する時は FEATURES.md の
+   ルールに厳密に従ってください — そのファイルが features.json を編集する
+   ための契約（状態マシン、WIP=1、verification ゲート、アンチパターン）です。
+   一度読んでから手を動かしてください。
 
 7. 完了したら検証して刻印：
    - `make check` を実行 — exit 0 必須
    - `harness doctor` を実行 — スコアは 24/30 以上必須
-   - `harness session end "harness-kit bootstrap: <project name> のスキャフォールディングを実装"` を実行
+   - PROGRESS.md の末尾に `## Session <ISO タイムスタンプ>` ブロックを追加し、
+     何をしたかを書く（bootstrap: <project name> のスキャフォールディングを実装）
+   - `bash scripts/exit-clean.sh` を実行 — exit 0 必須
 
 ブートストラップ中のハードルール：
 - WIP = 1。新機能のコーディングを始めないでください。

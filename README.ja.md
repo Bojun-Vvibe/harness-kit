@@ -61,7 +61,7 @@ npx harness-kit init
 npx harness-kit inject --apply
 ```
 
-`npx` を使った後で `harness doctor` や `make session-start` を実行して「command not found: harness」と出る場合は、グローバルにインストールしてください：
+`npx` を使った後で `harness doctor` を実行して「command not found: harness」と出る場合は、グローバルにインストールしてください：
 
 ```bash
 npm install -g harness-kit
@@ -100,14 +100,18 @@ npm install -g harness-kit
    とって真であるハードルール 5〜15 個に置き換えます。既存テスト・lint 設定・CI・
    エラーハンドリング・ADR から導出してください。該当しない例は削除します。
 
-6. features.json には自分で feature を追加しないでください。人間が「何を作るか」を
-   告げるのを待ち、その後 `harness feature add` を使ってください — JSON を直接編集
-   してはいけません。
+6. features.json には、まだ自分で feature を追加しないでください。人間が
+   「何を作るか」を告げるのを待ってください。追加する時は FEATURES.md の
+   ルールに厳密に従ってください — そのファイルが features.json を編集する
+   ための契約（状態マシン、WIP=1、verification ゲート、アンチパターン）です。
+   一度読んでから手を動かしてください。
 
 7. 完了したら検証して刻印：
    - `make check` を実行 — exit 0 必須
    - `harness doctor` を実行 — スコアは 24/30 以上必須
-   - `harness session end "harness-kit bootstrap: <project name> のスキャフォールディングを実装"` を実行
+   - PROGRESS.md の末尾に `## Session <ISO タイムスタンプ>` ブロックを追加し、
+     何をしたかを書く（bootstrap: <project name> のスキャフォールディングを実装）
+   - `bash scripts/exit-clean.sh` を実行 — exit 0 必須
 
 ブートストラップ中のハードルール：
 - WIP = 1。新機能のコーディングを始めないでください。
@@ -122,19 +126,26 @@ npm install -g harness-kit
 
 ## コマンド
 
+CLI は意図的にとても小さい：スキャフォールド系 2 つと診断系 2 つだけ。
+日々の作業はすべて、生成されたリポジトリ内の markdown + スクリプトに
+存在します — 読めて、grep でき、変更できる。
+
 | コマンド | 何をするか |
 |---|---|
-| `harness init [dir]` | 新規ハーネスをスキャフォールド（対話モード）。約 17 ファイルを書き出し |
+| `harness init [dir]` | 新規ハーネスをスキャフォールド（対話モード）。約 18 ファイルを書き出し。最後に bootstrap prompt を自動表示 |
 | `harness inject [dir]` | 既存リポにハーネスを追加。既定はドライラン；`--apply` で本適用。既存の `AGENTS.md` / `Makefile` は安全マージ |
 | `harness doctor [dir]` | 5 サブシステムを各 5 点満点で採点 + コールドスタートテスト（5 問）|
 | `harness clean [dir]` | L12 の 5 次元 exit-clean を実行（ビルド / テスト / 進捗 / アーティファクト / 起動経路）|
-| `harness feature add` | id + behavior + verification コマンドで新機能を追加 |
-| `harness feature list` | 全機能と状態を表示 |
-| `harness feature start <id>` | 機能を active に。**WIP=1 を強制** |
-| `harness feature done <id>` | verification を実行。exit 0 のときのみ passing にマーク |
-| `harness feature block <id> <reason>` | 機能を blocked にして理由を記録 |
-| `harness session start` | L06 入場：状態読込 + ツール健全性チェック + ブリーフィング |
-| `harness session end ["summary"]` | L12 PROGRESS に刻印 + exit-clean 実行 |
+
+init 後は基本的に `harness` CLI は不要です。日々のワークフローは：
+
+| 操作 | どこで |
+|---|---|
+| 機能管理（add / start / done / block）| `features.json` を直接編集（`FEATURES.md` のルールに従って）|
+| 機能が本当に終わったか検証 | `bash scripts/validate-feature.sh <id>` |
+| セッション開始のブリーフィング | `bash scripts/session-init.sh` |
+| セッション終了のチェック | `PROGRESS.md` に追記し、`bash scripts/exit-clean.sh` |
+| bootstrap prompt をもう一度読む | `cat .harness/bootstrap-prompt.txt` |
 
 ---
 
@@ -152,9 +163,9 @@ npm install -g harness-kit
 
 ## このキットが譲らない 3 点（エージェントと議論しなくて済むように）
 
-1. **WIP = 1。** `features.json` は同時に 1 機能だけ `active` を許します。別の機能が active のまま `harness feature start` を呼ぶと拒否されます。「6 件同時着手・0 件完了」の典型的失敗を根絶します（L07）。
+1. **WIP = 1。** `features.json` は同時に 1 機能だけ `active` を許します。このルールは `FEATURES.md` に書かれていて、エージェントの自律性 + git diff レビューで強制されます。「6 件同時着手・0 件完了」の典型的失敗を根絶します（L07）。
 
-2. **完了への唯一の経路は verification。** 全機能に `verification` シェルコマンド必須。`harness feature done <id>` がそれを実行し、exit 0 のときのみ `passing`。「見た目は OK」では done になりません（L09）。
+2. **完了への唯一の経路は verification。** 全機能に `verification` シェルコマンド必須。`bash scripts/validate-feature.sh <id>` が exit 0 を返したときのみ `passing` にマーク可能。「見た目は OK」では done になりません（L09）。
 
 3. **クリーンな退場が「完了」の一部。** `scripts/exit-clean.sh` がセッション終了時に 5 項目を確認（ビルド／テスト／PROGRESS の鮮度／古いアーティファクトなし／起動経路が呼べる）。CI も同じスクリプトを実行します（L12）。
 

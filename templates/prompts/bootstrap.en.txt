@@ -25,14 +25,18 @@ Your job is to make the harness real for THIS project.
    from existing tests, lint configs, CI, error handlers, and ADRs. Drop
    examples that don't apply.
 
-6. In features.json, do NOT add features yourself. Wait for the human to tell
-   you what to build, then use `harness feature add` — never edit the JSON
-   by hand.
+6. In features.json, do NOT add features yourself yet. Wait for the human to tell
+   you what to build. When they do, follow the rules in FEATURES.md to add
+   the entry — that file is the contract for editing features.json (state
+   machine, WIP=1, verification gating, anti-patterns). Read it once, then
+   act.
 
 7. When done, verify and stamp:
    - run `make check` — must exit 0
    - run `harness doctor` — score must be at least 24/30
-   - run `harness session end "harness-kit bootstrap: filled scaffolding for <project name>"`
+   - append a `## Session <ISO timestamp>` block to PROGRESS.md describing what
+     you did (bootstrap: filled scaffolding for <project name>)
+   - run `bash scripts/exit-clean.sh` — must exit 0
 
 Hard rules during this bootstrap:
 - WIP = 1. Do not start coding new features.

@@ -26,7 +26,7 @@
 ## Acceptance criteria (must all be objectively checkable)
 
 - [ ] `make check` passes
-- [ ] `harness feature done <id>` exits 0 (i.e., the feature's `verification` command passes)
+- [ ] `bash scripts/validate-feature.sh <id>` exits 0 (i.e., the feature's `verification` command passes)
 - [ ] No regressions in QUALITY.md grades for affected modules
 - [ ] (optional) e2e: `<specific user-visible behavior>` works
 

@@ -7,9 +7,10 @@ Keep this list short (≤ 15 items). If a rule is situational, move it to a topi
 
 - WIP = 1. At most one `features.json` item may be in state `active`. (L07)
 - Every feature must have a `verification` command. No verification, no `done`. (L08)
+- A feature only enters `passing` after its `verification` command exits 0 — verified via `bash scripts/validate-feature.sh <id>`. Not by visual inspection. (L09)
 - Do not commit if `make check` fails locally. (L02)
-- Do not declare a feature `done` unless its verification command exits 0. (L09)
 - Do not refactor unrelated code while a feature is `active`. Finish, then refactor. (L09)
+- See [`FEATURES.md`](./FEATURES.md) for the full state machine and anti-patterns when editing `features.json`.
 
 ## Code constraints
 

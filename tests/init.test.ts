@@ -16,7 +16,6 @@ function makeTmp(): string {
 }
 
 beforeAll(() => {
-  // Ensure CLI is built. Fail loudly if not.
   if (!existsSync(CLI)) {
     throw new Error(`CLI not built at ${CLI}. Run \`npm run build\` first.`);
   }
@@ -45,9 +44,12 @@ describe("harness init", () => {
     expect(existsSync(join(dir, "CONSTRAINTS.md"))).toBe(true);
     expect(existsSync(join(dir, "PROGRESS.md"))).toBe(true);
     expect(existsSync(join(dir, "features.json"))).toBe(true);
+    expect(existsSync(join(dir, "FEATURES.md"))).toBe(true);
     expect(existsSync(join(dir, "QUALITY.md"))).toBe(true);
     expect(existsSync(join(dir, "Makefile"))).toBe(true);
     expect(existsSync(join(dir, "scripts/exit-clean.sh"))).toBe(true);
+    expect(existsSync(join(dir, "scripts/session-init.sh"))).toBe(true);
+    expect(existsSync(join(dir, "scripts/validate-feature.sh"))).toBe(true);
     expect(existsSync(join(dir, "docs/templates/sprint-contract.md"))).toBe(true);
     expect(existsSync(join(dir, ".github/workflows/harness.yml"))).toBe(true);
     expect(existsSync(join(dir, ".harnessrc.json"))).toBe(true);
@@ -68,6 +70,18 @@ describe("harness init", () => {
     const feats = JSON.parse(readFileSync(join(dir, "features.json"), "utf8"));
     expect(feats.wip_limit).toBe(1);
     expect(feats.features).toEqual([]);
+  });
+
+  it("FEATURES.md documents the WIP=1 + verification rules (markdown is the contract)", () => {
+    const dir = makeTmp();
+    execSync(`node ${CLI} init ${dir} --yes --agents claude-code --name fdoc-test`, {
+      stdio: "pipe",
+    });
+    const md = readFileSync(join(dir, "FEATURES.md"), "utf8");
+    expect(md).toMatch(/WIP\s*=\s*1/);
+    expect(md).toMatch(/verification/i);
+    expect(md).toMatch(/state machine|state transitions/i);
+    expect(md).toMatch(/scripts\/validate-feature\.sh/);
   });
 });
 
@@ -107,48 +121,33 @@ describe("harness inject", () => {
     expect(existsSync(join(dir, "AGENTS.md"))).toBe(false);
   });
 
-  it("--apply --force actually writes files", () => {
+  it("--apply --force actually writes files and includes FEATURES.md", () => {
     const dir = makeTmp();
     execSync(`mkdir -p ${dir} && echo '{"name":"old"}' > ${dir}/package.json`);
     execSync(`node ${CLI} inject ${dir} --apply --force`, { stdio: "pipe" });
     expect(existsSync(join(dir, "AGENTS.md"))).toBe(true);
     expect(existsSync(join(dir, "Makefile"))).toBe(true);
     expect(existsSync(join(dir, ".harnessrc.json"))).toBe(true);
+    expect(existsSync(join(dir, "FEATURES.md"))).toBe(true);
     const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
     expect(pkg.name).toBe("old");
   });
 });
 
-describe("harness feature", () => {
-  it("add then list shows the feature; WIP=1 is enforced", () => {
-    const dir = makeTmp();
-    execSync(`node ${CLI} init ${dir} --yes --agents claude-code --name f-test`, { stdio: "pipe" });
-    execSync(`node ${CLI} feature add --id F01 --behavior "first thing" --verification "true"`, {
-      stdio: "pipe",
-      cwd: dir,
-    });
-    execSync(`node ${CLI} feature add --id F02 --behavior "second thing" --verification "true"`, {
-      stdio: "pipe",
-      cwd: dir,
-    });
-    execSync(`node ${CLI} feature start F01`, { stdio: "pipe", cwd: dir });
-
-    let blocked = false;
-    try {
-      execSync(`node ${CLI} feature start F02`, { stdio: "pipe", cwd: dir });
-    } catch {
-      blocked = true;
-    }
-    expect(blocked).toBe(true);
-
-    execSync(`node ${CLI} feature done F01`, { stdio: "pipe", cwd: dir });
-    const feats = JSON.parse(readFileSync(join(dir, "features.json"), "utf8"));
-    const f01 = feats.features.find((f: { id: string }) => f.id === "F01");
-    expect(f01.state).toBe("passing");
+describe("harness CLI surface (v0.2.0)", () => {
+  it("only registers init / inject / doctor / clean", () => {
+    const out = execSync(`node ${CLI} --help`, { encoding: "utf8" });
+    expect(out).toContain("init");
+    expect(out).toContain("inject");
+    expect(out).toContain("doctor");
+    expect(out).toContain("clean");
+    // removed in v0.2.0 — must not appear as a *registered* command
+    // (i.e. at the start of an indented help line, not just substring in a description):
+    expect(out).not.toMatch(/^\s+feature-(add|list|start|done|block)\b/m);
+    expect(out).not.toMatch(/^\s+session-(start|end)\b/m);
+    expect(out).not.toMatch(/^\s+prompt\b/m);
   });
-});
 
-describe("harness CLI: unknown command handling", () => {
   it("typo'd command exits non-zero with a 'did you mean' suggestion", () => {
     let combined = "";
     let exit = 0;
@@ -168,6 +167,25 @@ describe("harness CLI: unknown command handling", () => {
     expect(combined).toMatch(/Did you mean: doctor/);
   });
 
+  it("a removed v0.1.x command (e.g. `prompt`) prints the v0.2.0 migration hint", () => {
+    let combined = "";
+    let exit = 0;
+    try {
+      execSync(`node ${CLI} prompt`, { encoding: "utf8", stdio: "pipe" });
+    } catch (e) {
+      const err = e as { status: number; stderr: Buffer | string; stdout: Buffer | string };
+      exit = err.status;
+      const errStr =
+        typeof err.stderr === "string" ? err.stderr : (err.stderr?.toString("utf8") ?? "");
+      const outStr =
+        typeof err.stdout === "string" ? err.stdout : (err.stdout?.toString("utf8") ?? "");
+      combined = errStr + outStr;
+    }
+    expect(exit).toBeGreaterThan(0);
+    expect(combined).toMatch(/removed in v0\.2\.0/);
+    expect(combined).toMatch(/FEATURES\.md/);
+  });
+
   it("--help exits 0 with usage block", () => {
     const out = execSync(`node ${CLI} --help`, { encoding: "utf8" });
     expect(out).toContain("Usage:");
@@ -181,7 +199,7 @@ describe("harness CLI: unknown command handling", () => {
   });
 });
 
-describe("harness bootstrap prompt", () => {
+describe("harness bootstrap prompt (printed at init/inject; cat the file later)", () => {
   it("init prints the bootstrap prompt with copy markers and saves it", () => {
     const dir = makeTmp();
     const out = execSync(
@@ -205,42 +223,6 @@ describe("harness bootstrap prompt", () => {
     expect(saved).toContain("你现在在一个刚被");
   });
 
-  it("`harness prompt --lang ja` reprints the Japanese version", () => {
-    const dir = makeTmp();
-    execSync(`node ${CLI} init ${dir} --yes --agents claude-code --name p-ja --lang en`, {
-      stdio: "pipe",
-    });
-    const out = execSync(`node ${CLI} prompt --lang ja`, { encoding: "utf8", cwd: dir });
-    expect(out).toContain("BEGIN PROMPT");
-    expect(out).toContain("あなたは harness-kit");
-  });
-
-  it("`harness prompt` with no args uses the cached saved copy", () => {
-    const dir = makeTmp();
-    execSync(`node ${CLI} init ${dir} --yes --agents claude-code --name p-cache --lang fr`, {
-      stdio: "pipe",
-    });
-    const out = execSync(`node ${CLI} prompt`, { encoding: "utf8", cwd: dir });
-    expect(out).toContain("Tu travailles dans un dépôt");
-    expect(out).toContain("Loaded from .harness/bootstrap-prompt.txt");
-  });
-
-  it("rejects an unsupported --lang", () => {
-    let exit = 0;
-    let combined = "";
-    try {
-      execSync(`node ${CLI} prompt --lang klingon`, { encoding: "utf8", stdio: "pipe" });
-    } catch (e) {
-      const err = e as { status: number; stderr: Buffer | string; stdout: Buffer | string };
-      exit = err.status;
-      combined =
-        (typeof err.stderr === "string" ? err.stderr : (err.stderr?.toString("utf8") ?? "")) +
-        (typeof err.stdout === "string" ? err.stdout : (err.stdout?.toString("utf8") ?? ""));
-    }
-    expect(exit).toBeGreaterThan(0);
-    expect(combined).toMatch(/Unsupported language/);
-  });
-
   it("inject --apply also prints and saves the bootstrap prompt", () => {
     const dir = makeTmp();
     execSync(`mkdir -p ${dir} && echo '{"name":"old"}' > ${dir}/package.json`);
@@ -250,5 +232,16 @@ describe("harness bootstrap prompt", () => {
     expect(out).toContain("BEGIN PROMPT");
     expect(out).toContain("END PROMPT");
     expect(existsSync(join(dir, ".harness/bootstrap-prompt.txt"))).toBe(true);
+  });
+
+  it("the saved copy contains the latest v0.2.0 step 7 (no more `harness session end`)", () => {
+    const dir = makeTmp();
+    execSync(`node ${CLI} init ${dir} --yes --agents claude-code --name p-fresh --lang en`, {
+      stdio: "pipe",
+    });
+    const saved = readFileSync(join(dir, ".harness/bootstrap-prompt.txt"), "utf8");
+    expect(saved).not.toMatch(/harness session/);
+    expect(saved).not.toMatch(/harness feature/);
+    expect(saved).toMatch(/bash scripts\/exit-clean\.sh/);
   });
 });
