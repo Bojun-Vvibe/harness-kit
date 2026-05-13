@@ -1,0 +1,40 @@
+あなたは harness-kit が初期化されたばかりのリポジトリで作業しています。
+あなたの仕事は、このハーネスを「このプロジェクトにとって本物」にすることです。
+
+1. 生成された全ファイルを読んでください：AGENTS.md、CONSTRAINTS.md、PROGRESS.md、
+   QUALITY.md、docs/architecture.md、docs/decisions.md、docs/testing-standards.md、
+   Makefile、.harnessrc.json。構造を理解します。
+
+2. プロジェクト本体を調査してください：package.json / pyproject.toml / Cargo.toml /
+   go.mod / src ツリー / 既存 README / CI 設定 / lockfile を読み、このプロジェクトが
+   何で、どんなスタックで、どこがエントリーポイントで、どんな規約を既に遵守しているか
+   を把握します。
+
+3. 生成ドキュメント中の `> **TODO**:` マーカーを、このプロジェクトにとって真である
+   内容で置き換えます。具体的に — 実在するファイル名と行番号を引用してください。
+   高い確信を持って答えられない事項は、推測せずに
+   `> **TODO(@me, YYYY-MM-DD): X についての回答が必要**` を残してください。
+
+4. Makefile のプレースホルダ・ターゲット本体（setup / dev / test / lint / typecheck /
+   build / clean）を、このプロジェクトの実コマンドで置き換えます。それぞれを
+   `make -n <target>` 後に `make <target>` で一度実行して検証してください。
+   このプロジェクトに該当しないターゲットは `@true` のままに、理由をコメントで残します。
+
+5. CONSTRAINTS.md の例示「Code constraints」「Forbidden」セクションを、このプロジェクトに
+   とって真であるハードルール 5〜15 個に置き換えます。既存テスト・lint 設定・CI・
+   エラーハンドリング・ADR から導出してください。該当しない例は削除します。
+
+6. features.json には自分で feature を追加しないでください。人間が「何を作るか」を
+   告げるのを待ち、その後 `harness feature add` を使ってください — JSON を直接編集
+   してはいけません。
+
+7. 完了したら検証して刻印：
+   - `make check` を実行 — exit 0 必須
+   - `harness doctor` を実行 — スコアは 24/30 以上必須
+   - `harness session end "harness-kit bootstrap: <project name> のスキャフォールディングを実装"` を実行
+
+ブートストラップ中のハードルール：
+- WIP = 1。新機能のコーディングを始めないでください。
+- ステップ 1 に列挙したスキャフォールディングファイル以外は変更しないでください。
+- `harness doctor` と `make check` の両方が通るまで「完了」と宣言しないでください。
+- リポジトリから本当に判定不能な事項は人間に質問 — 推測しないでください。

@@ -180,3 +180,75 @@ describe("harness CLI: unknown command handling", () => {
     expect(out).toContain("Usage:");
   });
 });
+
+describe("harness bootstrap prompt", () => {
+  it("init prints the bootstrap prompt with copy markers and saves it", () => {
+    const dir = makeTmp();
+    const out = execSync(
+      `node ${CLI} init ${dir} --yes --agents claude-code --name p-test --lang en`,
+      { encoding: "utf8" },
+    );
+    expect(out).toContain("BEGIN PROMPT");
+    expect(out).toContain("END PROMPT");
+    expect(out).toContain("You are working in a repo that just had harness-kit initialized");
+    expect(existsSync(join(dir, ".harness/bootstrap-prompt.txt"))).toBe(true);
+  });
+
+  it("--lang zh prints the Chinese version", () => {
+    const dir = makeTmp();
+    const out = execSync(
+      `node ${CLI} init ${dir} --yes --agents claude-code --name p-zh --lang zh`,
+      { encoding: "utf8" },
+    );
+    expect(out).toContain("你现在在一个刚被 harness-kit 初始化过的仓库里工作");
+    const saved = readFileSync(join(dir, ".harness/bootstrap-prompt.txt"), "utf8");
+    expect(saved).toContain("你现在在一个刚被");
+  });
+
+  it("`harness prompt --lang ja` reprints the Japanese version", () => {
+    const dir = makeTmp();
+    execSync(`node ${CLI} init ${dir} --yes --agents claude-code --name p-ja --lang en`, {
+      stdio: "pipe",
+    });
+    const out = execSync(`node ${CLI} prompt --lang ja`, { encoding: "utf8", cwd: dir });
+    expect(out).toContain("BEGIN PROMPT");
+    expect(out).toContain("あなたは harness-kit");
+  });
+
+  it("`harness prompt` with no args uses the cached saved copy", () => {
+    const dir = makeTmp();
+    execSync(`node ${CLI} init ${dir} --yes --agents claude-code --name p-cache --lang fr`, {
+      stdio: "pipe",
+    });
+    const out = execSync(`node ${CLI} prompt`, { encoding: "utf8", cwd: dir });
+    expect(out).toContain("Tu travailles dans un dépôt");
+    expect(out).toContain("Loaded from .harness/bootstrap-prompt.txt");
+  });
+
+  it("rejects an unsupported --lang", () => {
+    let exit = 0;
+    let combined = "";
+    try {
+      execSync(`node ${CLI} prompt --lang klingon`, { encoding: "utf8", stdio: "pipe" });
+    } catch (e) {
+      const err = e as { status: number; stderr: Buffer | string; stdout: Buffer | string };
+      exit = err.status;
+      combined =
+        (typeof err.stderr === "string" ? err.stderr : (err.stderr?.toString("utf8") ?? "")) +
+        (typeof err.stdout === "string" ? err.stdout : (err.stdout?.toString("utf8") ?? ""));
+    }
+    expect(exit).toBeGreaterThan(0);
+    expect(combined).toMatch(/Unsupported language/);
+  });
+
+  it("inject --apply also prints and saves the bootstrap prompt", () => {
+    const dir = makeTmp();
+    execSync(`mkdir -p ${dir} && echo '{"name":"old"}' > ${dir}/package.json`);
+    const out = execSync(`node ${CLI} inject ${dir} --apply --force --lang en`, {
+      encoding: "utf8",
+    });
+    expect(out).toContain("BEGIN PROMPT");
+    expect(out).toContain("END PROMPT");
+    expect(existsSync(join(dir, ".harness/bootstrap-prompt.txt"))).toBe(true);
+  });
+});

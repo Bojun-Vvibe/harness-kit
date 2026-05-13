@@ -1,0 +1,41 @@
+You are working in a repo that just had harness-kit initialized.
+Your job is to make the harness real for THIS project.
+
+1. Read every generated file: AGENTS.md, CONSTRAINTS.md, PROGRESS.md, QUALITY.md,
+   docs/architecture.md, docs/decisions.md, docs/testing-standards.md, Makefile,
+   .harnessrc.json. Understand the structure.
+
+2. Inspect the actual project: read package.json / pyproject.toml / Cargo.toml /
+   go.mod / src tree / existing README / CI configs / lockfiles. Figure out what
+   this project really is, what stack it uses, where its entry points are, and
+   what conventions it already follows.
+
+3. Replace every `> **TODO**:` marker in the generated docs with content that is
+   TRUE for this project. Be specific — cite real files and line numbers.
+   If you cannot answer something with high confidence, leave
+   `> **TODO(@me, YYYY-MM-DD): need answer for X**` instead of guessing.
+
+4. Replace the placeholder Makefile target bodies (setup / dev / test / lint /
+   typecheck / build / clean) with this project's real commands. Verify each
+   by running `make -n <target>` then `make <target>` once. If a target does
+   not apply, leave it as `@true` with a one-line comment explaining why.
+
+5. In CONSTRAINTS.md, replace the example "Code constraints" and "Forbidden"
+   sections with 5–15 hard rules that are TRUE for this project. Derive them
+   from existing tests, lint configs, CI, error handlers, and ADRs. Drop
+   examples that don't apply.
+
+6. In features.json, do NOT add features yourself. Wait for the human to tell
+   you what to build, then use `harness feature add` — never edit the JSON
+   by hand.
+
+7. When done, verify and stamp:
+   - run `make check` — must exit 0
+   - run `harness doctor` — score must be at least 24/30
+   - run `harness session end "harness-kit bootstrap: filled scaffolding for <project name>"`
+
+Hard rules during this bootstrap:
+- WIP = 1. Do not start coding new features.
+- Do not modify any file outside the harness scaffolding listed in step 1.
+- Do not declare done until `harness doctor` and `make check` both pass.
+- If something is genuinely undecidable from the repo, ask the human — don't invent.

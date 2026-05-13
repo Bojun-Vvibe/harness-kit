@@ -69,7 +69,18 @@ npm install -g harness-kit
 
 ## init 完之后：把这段 prompt 丢给你的 agent
 
-脚手架里到处是 TODO 占位。**别手动填**。在你的 coding agent（Claude Code / Codex / OpenCode / Cursor / Aider）里打开项目，把下面这段 prompt 整段粘进去，让 agent 自己读项目结构、自己填：
+脚手架里到处是 TODO 占位。**别手动填**。
+
+**`harness init` 跑完会自动把这段 prompt 直接打印到终端**，并存一份到 `.harness/bootstrap-prompt.txt`。你也可以随时重新打印：
+
+```bash
+harness prompt              # 自动用系统语言（LANG）
+harness prompt --lang zh    # 强制中文
+harness prompt --lang en    # 强制英文
+# en | zh | ja | ko | es | pt | fr | de
+```
+
+下面是中文版 prompt，方便参考——在你的 coding agent（Claude Code / Codex / OpenCode / Cursor / Aider）里打开项目，把它整段粘进去：
 
 ```
 你现在在一个刚被 harness-kit 初始化过的仓库里工作。

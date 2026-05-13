@@ -5,6 +5,7 @@ import { detectAgents, detectExisting, guessProjectName } from "../utils/detect.
 import { ensureDir, pathExists, pkgPath, readText, render, writeText } from "../utils/fs.js";
 import { c, isHarnessOnPath, log, printInstallHint } from "../utils/log.js";
 import { mergeMakefile, mergeMarkdown } from "../utils/merge.js";
+import { loadPrompt, printPrompt, resolveLang, savePrompt } from "../utils/prompt.js";
 import { renderAgentFiles } from "./_shared.js";
 
 const TEMPLATE_VERSION = "1";
@@ -149,6 +150,13 @@ export async function runInject(opts: InjectOptions): Promise<void> {
   if (!isHarnessOnPath()) {
     printInstallHint();
   }
+
+  // Print and save the bootstrap prompt.
+  const lang = resolveLang(opts.lang);
+  const promptText = await loadPrompt(lang);
+  await savePrompt(cwd, promptText);
+  printPrompt(promptText, lang);
+
   log.ok(`Inject complete. Run ${c.bold("harness doctor")} to score the result.`);
 }
 

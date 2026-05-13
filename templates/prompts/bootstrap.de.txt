@@ -1,0 +1,43 @@
+Du arbeitest in einem Repo, in dem gerade harness-kit initialisiert wurde.
+Deine Aufgabe ist es, diesen Harness für DIESES Projekt real zu machen.
+
+1. Lies jede generierte Datei: AGENTS.md, CONSTRAINTS.md, PROGRESS.md, QUALITY.md,
+   docs/architecture.md, docs/decisions.md, docs/testing-standards.md, Makefile,
+   .harnessrc.json. Verstehe die Struktur.
+
+2. Inspiziere das eigentliche Projekt: lies package.json / pyproject.toml /
+   Cargo.toml / go.mod / src-Baum / vorhandenes README / CI-Configs / Lockfiles.
+   Finde heraus, was dieses Projekt wirklich ist, welche Stack es nutzt, wo seine
+   Einstiegspunkte sind und welche Konventionen es bereits einhält.
+
+3. Ersetze jeden `> **TODO**:`-Marker in den generierten Docs durch Inhalt, der
+   für DIESES Projekt WAHR ist. Sei spezifisch — zitiere reale Dateinamen und
+   Zeilennummern. Wenn du etwas nicht mit hoher Sicherheit beantworten kannst,
+   hinterlasse `> **TODO(@me, YYYY-MM-DD): need answer for X**` statt zu raten.
+
+4. Ersetze die Platzhalter-Body-Inhalte der Makefile-Targets (setup / dev / test /
+   lint / typecheck / build / clean) durch die echten Befehle dieses Projekts.
+   Verifiziere jedes mit `make -n <target>` und dann einmal `make <target>`.
+   Wenn ein Target nicht zutrifft, lass es als `@true` mit einem Einzeiler-
+   Kommentar, der erklärt, warum.
+
+5. In CONSTRAINTS.md ersetze die Beispiel-Sektionen „Code constraints" und
+   „Forbidden" durch 5–15 harte Regeln, die für DIESES Projekt WAHR sind.
+   Leite sie aus existierenden Tests, Lint-Configs, CI, Error-Handlern und ADRs
+   ab. Lösche nicht zutreffende Beispiele.
+
+6. In features.json füge KEINE Features selbst hinzu. Warte, bis der Mensch dir
+   sagt, was zu bauen ist, und nutze dann `harness feature add` — bearbeite das
+   JSON niemals direkt.
+
+7. Wenn fertig, verifiziere und siegele:
+   - führe `make check` aus — muss exit 0
+   - führe `harness doctor` aus — Score muss mindestens 24/30 sein
+   - führe `harness session end "harness-kit bootstrap: Scaffolding für <project name> ausgefüllt"` aus
+
+Harte Regeln während dieses Bootstraps:
+- WIP = 1. Beginne nicht mit dem Codieren neuer Features.
+- Modifiziere keine Datei außerhalb des in Schritt 1 aufgelisteten Scaffoldings.
+- Erkläre nicht „fertig", bevor `harness doctor` und `make check` beide bestehen.
+- Wenn etwas wirklich nicht aus dem Repo entscheidbar ist, frage den Menschen
+  — erfinde nicht.

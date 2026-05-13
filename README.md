@@ -80,8 +80,20 @@ npm install -g harness-kit
 ## After init: hand it to your agent
 
 The scaffolding has TODO placeholders everywhere. Don't fill them by hand.
-Open the project in your coding agent (Claude Code / Codex / OpenCode / Cursor / Aider)
-and paste this prompt:
+
+**`harness init` automatically prints the bootstrap prompt at the end** and saves
+a copy to `.harness/bootstrap-prompt.txt`. You can also re-print it any time:
+
+```bash
+harness prompt              # uses your locale (LANG)
+harness prompt --lang en    # force English
+harness prompt --lang zh    # force Chinese
+# en | zh | ja | ko | es | pt | fr | de
+```
+
+For reference, here's the English version of the prompt — open the project
+in your coding agent (Claude Code / Codex / OpenCode / Cursor / Aider) and
+paste it:
 
 ```
 You are working in a repo that just had harness-kit initialized.

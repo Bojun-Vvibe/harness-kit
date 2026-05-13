@@ -1,0 +1,42 @@
+Você está trabalhando num repo que acabou de inicializar harness-kit.
+Sua tarefa é tornar este harness real para ESTE projeto.
+
+1. Leia cada arquivo gerado: AGENTS.md, CONSTRAINTS.md, PROGRESS.md, QUALITY.md,
+   docs/architecture.md, docs/decisions.md, docs/testing-standards.md, Makefile,
+   .harnessrc.json. Entenda a estrutura.
+
+2. Inspecione o projeto real: leia package.json / pyproject.toml / Cargo.toml /
+   go.mod / árvore de src / README existente / configs de CI / lockfiles.
+   Descubra o que este projeto realmente é, qual stack usa, onde estão os pontos
+   de entrada e quais convenções já segue.
+
+3. Substitua cada marcador `> **TODO**:` nos docs gerados por conteúdo VERDADEIRO
+   para este projeto. Seja específico — cite arquivos e linhas reais. Se você não
+   pode responder algo com alta confiança, deixe
+   `> **TODO(@me, YYYY-MM-DD): need answer for X**` em vez de chutar.
+
+4. Substitua os corpos placeholder dos targets do Makefile (setup / dev / test /
+   lint / typecheck / build / clean) pelos comandos reais deste projeto. Verifique
+   cada um rodando `make -n <target>` e depois `make <target>` uma vez. Se um
+   target não se aplica, deixe como `@true` com um comentário de uma linha
+   explicando por quê.
+
+5. Em CONSTRAINTS.md, substitua as seções de exemplo "Code constraints" e
+   "Forbidden" por 5–15 regras duras VERDADEIRAS para este projeto. Derive-as de
+   testes existentes, configs de lint, CI, manipuladores de erro e ADRs. Apague
+   exemplos que não se aplicam.
+
+6. Em features.json, NÃO adicione features você mesmo. Espere o humano dizer o
+   que construir e então use `harness feature add` — nunca edite o JSON
+   diretamente.
+
+7. Quando terminar, verifique e carimbe:
+   - rode `make check` — deve sair 0
+   - rode `harness doctor` — a nota deve ser pelo menos 24/30
+   - rode `harness session end "harness-kit bootstrap: andaime preenchido para <project name>"`
+
+Regras duras durante este bootstrap:
+- WIP = 1. Não comece a codar features novas.
+- Não modifique nenhum arquivo fora do andaime listado no passo 1.
+- Não declare "pronto" até `harness doctor` e `make check` ambos passarem.
+- Se algo é genuinamente indecidível pelo repo, pergunte ao humano — não invente.

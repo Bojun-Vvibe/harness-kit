@@ -1,0 +1,43 @@
+Tu travailles dans un dépôt qui vient d'être initialisé avec harness-kit.
+Ta mission est de rendre ce harnais réel pour CE projet.
+
+1. Lis chaque fichier généré : AGENTS.md, CONSTRAINTS.md, PROGRESS.md, QUALITY.md,
+   docs/architecture.md, docs/decisions.md, docs/testing-standards.md, Makefile,
+   .harnessrc.json. Comprends la structure.
+
+2. Inspecte le projet réel : lis package.json / pyproject.toml / Cargo.toml /
+   go.mod / arborescence src / README existant / configs CI / lockfiles. Découvre
+   ce qu'est vraiment ce projet, quelle stack il utilise, où sont ses points
+   d'entrée et quelles conventions il suit déjà.
+
+3. Remplace chaque marqueur `> **TODO**:` dans les docs générés par du contenu
+   VRAI pour ce projet. Sois précis — cite des fichiers et lignes réels. Si tu
+   ne peux pas répondre avec haute confiance, laisse
+   `> **TODO(@me, YYYY-MM-DD): need answer for X**` au lieu de deviner.
+
+4. Remplace les corps placeholder des cibles Makefile (setup / dev / test / lint /
+   typecheck / build / clean) par les vraies commandes du projet. Vérifie chacune
+   en lançant `make -n <target>` puis `make <target>` une fois. Si une cible ne
+   s'applique pas, laisse-la en `@true` avec un commentaire d'une ligne expliquant
+   pourquoi.
+
+5. Dans CONSTRAINTS.md, remplace les sections d'exemple « Code constraints » et
+   « Forbidden » par 5–15 règles dures VRAIES pour ce projet. Dérive-les des
+   tests existants, configs lint, CI, gestionnaires d'erreur et ADRs. Supprime
+   les exemples qui ne s'appliquent pas.
+
+6. Dans features.json, n'ajoute PAS de features toi-même. Attends que l'humain
+   te dise quoi construire et utilise alors `harness feature add` — ne modifie
+   jamais le JSON directement.
+
+7. Une fois fini, vérifie et tamponne :
+   - lance `make check` — doit sortir 0
+   - lance `harness doctor` — la note doit être au moins 24/30
+   - lance `harness session end "harness-kit bootstrap : échafaudage rempli pour <project name>"`
+
+Règles dures pendant ce bootstrap :
+- WIP = 1. Ne commence pas à coder de nouvelles features.
+- Ne modifie aucun fichier en dehors de l'échafaudage listé à l'étape 1.
+- Ne déclare pas « terminé » avant que `harness doctor` ET `make check` passent.
+- Si quelque chose est vraiment indécidable depuis le dépôt, demande à l'humain
+  — n'invente pas.

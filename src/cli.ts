@@ -11,6 +11,7 @@ import {
 } from "./commands/feature.js";
 import { runInit } from "./commands/init.js";
 import { runInject } from "./commands/inject.js";
+import { runPrompt } from "./commands/prompt.js";
 import { runSessionEnd, runSessionStart } from "./commands/session.js";
 import type { AgentId } from "./types.js";
 import { log } from "./utils/log.js";
@@ -83,6 +84,7 @@ async function main(): Promise<void> {
       "--agents <agents>",
       "Comma-separated agent ids: claude-code,codex,opencode,cursor,aider",
     )
+    .option("--lang <lang>", "Bootstrap-prompt language: en|zh|ja|ko|es|pt|fr|de")
     .option("-y, --yes", "Skip prompts; use detected/default values")
     .option("-f, --force", "Overwrite existing .harnessrc.json")
     .action(async (dir: string | undefined, opts) => {
@@ -92,6 +94,7 @@ async function main(): Promise<void> {
         agents: parseAgents(opts.agents),
         yes: opts.yes,
         force: opts.force,
+        lang: opts.lang,
       });
     });
 
@@ -99,6 +102,7 @@ async function main(): Promise<void> {
     .command("inject [dir]", "Add a harness to an existing repo (dry-run by default)")
     .option("--apply", "Actually write changes (default is dry-run)")
     .option("--agents <agents>", "Comma-separated agent ids")
+    .option("--lang <lang>", "Bootstrap-prompt language: en|zh|ja|ko|es|pt|fr|de")
     .option("-f, --force", "Skip confirmation prompt when applying")
     .action(async (dir: string | undefined, opts) => {
       await runInject({
@@ -106,7 +110,15 @@ async function main(): Promise<void> {
         dryRun: !opts.apply,
         force: opts.force,
         agents: parseAgents(opts.agents),
+        lang: opts.lang,
       });
+    });
+
+  cli
+    .command("prompt", "Print the bootstrap prompt to paste into your AI agent")
+    .option("--lang <lang>", "Override language: en|zh|ja|ko|es|pt|fr|de")
+    .action(async (opts) => {
+      await runPrompt(resolve("."), opts.lang);
     });
 
   cli

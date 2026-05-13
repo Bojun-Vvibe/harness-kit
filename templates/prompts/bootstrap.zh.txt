@@ -1,0 +1,37 @@
+你现在在一个刚被 harness-kit 初始化过的仓库里工作。
+你的任务是：把这套 harness 在 THIS 项目里落实成真。
+
+1. 通读所有生成出来的脚手架文件：AGENTS.md、CONSTRAINTS.md、PROGRESS.md、
+   QUALITY.md、docs/architecture.md、docs/decisions.md、
+   docs/testing-standards.md、Makefile、.harnessrc.json。先理解结构。
+
+2. 检查项目本身：读 package.json / pyproject.toml / Cargo.toml / go.mod /
+   src 目录树 / 现有 README / CI 配置 / lockfile。搞清楚这个项目到底是什么、
+   用的什么栈、入口在哪、已经在遵守什么约定。
+
+3. 把所有生成文档里的 `> **TODO**:` 占位替换成对 THIS 项目为真的内容。
+   要具体——引用真实的文件名和行号。如果某条信息你不能高置信度回答，
+   就留 `> **TODO(@me, YYYY-MM-DD): need answer for X**`，不要瞎编。
+
+4. 把 Makefile 里的占位 target body（setup / dev / test / lint / typecheck /
+   build / clean）替换成项目真实的命令。每条都验证：先 `make -n <target>`，
+   再 `make <target>` 跑一次。如果某个 target 在这个项目不适用，留成 `@true`
+   并加一行注释说明为什么不适用。
+
+5. 在 CONSTRAINTS.md 里，把示例的 "Code constraints" 和 "Forbidden" 两节
+   换成 5–15 条对 THIS 项目为真的硬约束。从已有测试、lint 配置、CI、错误
+   处理代码、ADR 里推导出来。不适用的示例直接删。
+
+6. features.json 不要自己加 feature。等用户告诉你要做什么，然后用
+   `harness feature add` 命令——永远不要直接编辑 JSON。
+
+7. 全部完成后验证并盖章：
+   - 跑 `make check` —— 必须 exit 0
+   - 跑 `harness doctor` —— 分数必须 ≥ 24/30
+   - 跑 `harness session end "harness-kit bootstrap：为 <项目名> 填好脚手架"`
+
+bootstrap 期间的硬规则：
+- WIP = 1。不要开始写新功能。
+- 除了第 1 步列出的脚手架文件之外，不要修改任何文件。
+- 在 `harness doctor` 和 `make check` 都通过之前，不能宣布完成。
+- 仓库里实在推导不出来的事情，问用户——不要瞎编。

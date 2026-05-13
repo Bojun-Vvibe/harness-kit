@@ -37,6 +37,7 @@ export interface InitOptions {
   agents?: AgentId[];
   yes?: boolean;
   force?: boolean;
+  lang?: string;
 }
 
 export interface InjectOptions {
@@ -44,6 +45,7 @@ export interface InjectOptions {
   dryRun?: boolean;
   force?: boolean;
   agents?: AgentId[];
+  lang?: string;
 }
 
 export interface DoctorReport {

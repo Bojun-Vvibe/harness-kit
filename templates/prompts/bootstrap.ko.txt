@@ -1,0 +1,39 @@
+당신은 harness-kit 가 방금 초기화된 저장소에서 작업 중입니다.
+당신의 임무는 이 하니스를 「이 프로젝트에 맞게 진짜로」 만드는 것입니다.
+
+1. 생성된 모든 파일을 읽으세요: AGENTS.md, CONSTRAINTS.md, PROGRESS.md,
+   QUALITY.md, docs/architecture.md, docs/decisions.md,
+   docs/testing-standards.md, Makefile, .harnessrc.json. 구조를 이해합니다.
+
+2. 프로젝트 자체를 조사하세요: package.json / pyproject.toml / Cargo.toml /
+   go.mod / src 트리 / 기존 README / CI 설정 / lockfile 을 읽고, 이 프로젝트가
+   무엇이고 어떤 스택을 쓰며 진입점이 어디고 이미 어떤 관례를 따르는지 파악합니다.
+
+3. 생성 문서의 모든 `> **TODO**:` 표시를 「이 프로젝트」 기준으로 참인 내용으로
+   교체하세요. 구체적으로 — 실제 파일 이름과 라인 번호를 인용하세요. 높은 신뢰도로
+   답할 수 없으면 추측하지 말고
+   `> **TODO(@me, YYYY-MM-DD): X 에 대한 답이 필요함`` 을 남기세요.
+
+4. Makefile 의 자리표시자 타겟 본문(setup / dev / test / lint / typecheck /
+   build / clean)을 이 프로젝트의 실제 명령으로 교체하세요. 각 타겟을
+   `make -n <target>` 후 `make <target>` 으로 한 번 검증하세요. 적용되지 않는
+   타겟은 `@true` 로 두고 한 줄짜리 주석으로 사유를 남기세요.
+
+5. CONSTRAINTS.md 의 예시 「Code constraints」 와 「Forbidden」 섹션을 이
+   프로젝트에 참인 5–15 개의 강제 규칙으로 교체하세요. 기존 테스트, lint 설정,
+   CI, 에러 처리, ADR 에서 도출하세요. 적용되지 않는 예시는 삭제하세요.
+
+6. features.json 에 직접 feature 를 추가하지 마세요. 사용자가 무엇을 만들지
+   알려줄 때까지 기다린 후 `harness feature add` 를 사용하세요 — JSON 을 직접
+   편집하면 안 됩니다.
+
+7. 모두 끝나면 검증하고 도장 찍기:
+   - `make check` 실행 — exit 0 필수
+   - `harness doctor` 실행 — 점수 24/30 이상 필수
+   - `harness session end "harness-kit bootstrap: <project name> 스캐폴딩 채움"` 실행
+
+부트스트랩 동안의 강제 규칙:
+- WIP = 1. 새 기능 코딩을 시작하지 마세요.
+- 1 단계에 나열된 스캐폴딩 파일 외에는 어떤 파일도 수정하지 마세요.
+- `harness doctor` 와 `make check` 가 둘 다 통과하기 전에는 「완료」 선언 금지.
+- 저장소만으로 정말 결정 불가인 사항은 사용자에게 물어보세요 — 추측 금지.
