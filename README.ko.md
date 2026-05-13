@@ -45,24 +45,26 @@
 
 ## 설치 / 사용
 
-설치 없이:
+이 킷은 `harness` CLI 를 함께 배포합니다. 생성된 `Makefile` 과 `scripts/` 는 `harness ...` 를 직접 호출하므로, 거의 항상 PATH 에 두기를 권장합니다.
 
 ```bash
-# 새 프로젝트 — 대화형
+# 권장: 한 번 글로벌 설치 ────────────────────────────────────────
+npm install -g harness-kit
+harness init                 # 새 프로젝트 (대화형)
+harness inject               # 기존 프로젝트 (기본 dry-run)
+
+# 또는 설치 없이 npx ───────────────────────────────────────────
+# 주의: npx 는 그 한 번의 호출에서만 `harness` 를 노출합니다.
+# 생성된 PROGRESS.md / Makefile / scripts 가 모두 `harness ...` 를
+# 호출하므로, 결국 글로벌 설치가 필요해질 것입니다.
 npx harness-kit init
-
-# 기존 프로젝트 — 먼저 dry-run
-npx harness-kit inject
-
-# 실제 적용
 npx harness-kit inject --apply
 ```
 
-또는 한 번 글로벌 설치:
+`npx` 로 실행한 뒤 `harness doctor` 또는 `make session-start` 에서 "command not found: harness" 가 나오면 글로벌 설치하세요:
 
 ```bash
-npm i -g harness-kit
-harness init
+npm install -g harness-kit
 ```
 
 ---

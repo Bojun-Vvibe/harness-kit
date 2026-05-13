@@ -45,24 +45,26 @@ Supprimez la boîte à outils et les fichiers continuent de fonctionner.
 
 ## Installation / utilisation
 
-Sans installation :
+La boîte à outils embarque une CLI nommée `harness`. Le `Makefile` et les `scripts/` générés appellent `harness ...` directement, vous allez donc presque toujours vouloir l'avoir dans votre PATH.
 
 ```bash
-# nouveau projet — interactif
+# Recommandé : installation globale unique ────────────────────────────
+npm install -g harness-kit
+harness init                 # nouveau projet (interactif)
+harness inject               # projet existant (dry-run par défaut)
+
+# Ou sans installation, via npx ───────────────────────────────────────
+# Note : npx n'expose `harness` que dans cet appel unique. Le
+# PROGRESS.md / Makefile / scripts générés appellent `harness ...`,
+# donc tôt ou tard vous voudrez l'installation globale.
 npx harness-kit init
-
-# projet existant — d'abord en dry-run
-npx harness-kit inject
-
-# appliquer pour de vrai
 npx harness-kit inject --apply
 ```
 
-Ou installez une fois :
+Si vous avez utilisé `npx` et que `harness doctor` ou `make session-start` renvoie « command not found: harness », installez-le globalement :
 
 ```bash
-npm i -g harness-kit
-harness init
+npm install -g harness-kit
 ```
 
 ---

@@ -45,24 +45,26 @@ Borra el kit y los archivos siguen funcionando.
 
 ## Instalación / uso
 
-Cero instalación:
+El kit incluye un CLI llamado `harness`. El `Makefile` y los `scripts/` generados llaman a `harness ...` directamente, así que casi siempre vas a quererlo en tu PATH.
 
 ```bash
-# proyecto nuevo — interactivo
+# Recomendado: instala una vez globalmente ─────────────────────────────
+npm install -g harness-kit
+harness init                 # proyecto nuevo (interactivo)
+harness inject               # proyecto existente (por defecto dry-run)
+
+# O sin instalar, vía npx ──────────────────────────────────────────────
+# Nota: npx solo expone `harness` durante esa única llamada. El
+# PROGRESS.md / Makefile / scripts generados llaman a `harness ...`,
+# así que tarde o temprano vas a querer la instalación global.
 npx harness-kit init
-
-# proyecto existente — primero dry-run
-npx harness-kit inject
-
-# aplicar de verdad
 npx harness-kit inject --apply
 ```
 
-O instala una vez:
+Si usaste `npx` y al ejecutar `harness doctor` o `make session-start` ves "command not found: harness", instálalo globalmente:
 
 ```bash
-npm i -g harness-kit
-harness init
+npm install -g harness-kit
 ```
 
 ---

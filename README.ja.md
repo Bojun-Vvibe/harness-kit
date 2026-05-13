@@ -45,24 +45,26 @@
 
 ## インストール／使い方
 
-ゼロインストール：
+このキットは `harness` という CLI を同梱しています。生成される `Makefile` や `scripts/` は `harness ...` を直接呼び出すので、ほぼ常に PATH に通しておきたいでしょう。
 
 ```bash
-# 新規プロジェクト — 対話モード
+# 推奨：一度グローバルインストール ──────────────────────────────────────
+npm install -g harness-kit
+harness init                 # 新規プロジェクト（対話モード）
+harness inject               # 既存プロジェクト（既定はドライラン）
+
+# あるいはゼロインストールで npx ─────────────────────────────────────
+# 注意：npx はその一回の呼び出しの中でだけ `harness` を露出します。
+# 生成される PROGRESS.md / Makefile / scripts はすべて `harness ...`
+# を呼び出すため、結局はグローバルインストールが欲しくなります。
 npx harness-kit init
-
-# 既存プロジェクト — まずはドライラン
-npx harness-kit inject
-
-# 本適用
 npx harness-kit inject --apply
 ```
 
-または、一度だけグローバルインストール：
+`npx` を使った後で `harness doctor` や `make session-start` を実行して「command not found: harness」と出る場合は、グローバルにインストールしてください：
 
 ```bash
-npm i -g harness-kit
-harness init
+npm install -g harness-kit
 ```
 
 ---
