@@ -98,6 +98,22 @@ describe("harness doctor", () => {
     expect(got).toBeGreaterThanOrEqual(18);
   });
 
+  it("uses the canonical 5-subsystem labels (指令/工具/环境/状态/反馈)", () => {
+    const dir = makeTmp();
+    execSync(`node ${CLI} init ${dir} --yes --agents claude-code --name d-labels`, {
+      stdio: "pipe",
+    });
+    const out = execSync(`node ${CLI} doctor ${dir}`, { encoding: "utf8" });
+    expect(out).toContain("指令 instructions");
+    expect(out).toContain("工具 tools");
+    expect(out).toContain("环境 environment");
+    expect(out).toContain("状态 state");
+    expect(out).toContain("反馈 feedback");
+    // legacy v0.1.x labels must NOT appear:
+    expect(out).not.toMatch(/observability\s+█/);
+    expect(out).not.toMatch(/governance\s+█/);
+  });
+
   it("scores at least 25/30 on a freshly init'd repo (regression bar)", () => {
     const dir = makeTmp();
     execSync(`node ${CLI} init ${dir} --yes --agents claude-code,codex,opencode --name r-test`, {

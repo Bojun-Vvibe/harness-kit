@@ -4,6 +4,7 @@ import { runClean } from "./commands/clean.js";
 import { runDoctor } from "./commands/doctor.js";
 import { runInit } from "./commands/init.js";
 import { runInject } from "./commands/inject.js";
+import { runView } from "./commands/view.js";
 import type { AgentId } from "./types.js";
 import { log } from "./utils/log.js";
 
@@ -92,6 +93,21 @@ async function main(): Promise<void> {
       if (!res.passed) process.exit(1);
     });
 
+  cli
+    .command(
+      "view [dir]",
+      "Open a localhost dashboard showing the project's harness scaffold (5 subsystems)",
+    )
+    .option("-p, --port <port>", "Port to listen on (default 3737)", { default: 3737 })
+    .option("--no-open", "Do not auto-open the browser")
+    .action(async (dir: string | undefined, opts) => {
+      await runView({
+        cwd: resolve(dir ?? "."),
+        port: Number(opts.port) || 3737,
+        open: opts.open !== false,
+      });
+    });
+
   cli.help();
   cli.version(version);
   cli.parse(process.argv);
@@ -109,7 +125,7 @@ async function main(): Promise<void> {
   const matched = (cli as any).matchedCommand !== undefined;
   if (!matched) {
     const typed = userArgs[0] ?? "";
-    const all = ["init", "inject", "doctor", "clean"];
+    const all = ["init", "inject", "doctor", "clean", "view"];
     const suggestion = closest(typed, all);
     log.err(`Unknown command: ${typed}`);
     if (suggestion) {

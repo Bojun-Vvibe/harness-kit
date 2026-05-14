@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>harness — dashboard</title>
+    <style>
+      :root {
+        --bg: #fafafa;
+        --bg-card: #ffffff;
+        --border: #e3e3e3;
+        --fg: #18181b;
+        --fg-dim: #52525b;
+        --fg-mute: #a1a1aa;
+        --accent: #d95c41;
+        --ok: #16a34a;
+        --warn: #d97706;
+        --err: #dc2626;
+        --neutral: #52525b;
+        --pre-bg: #f4f4f5;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f0f10;
+          --bg-card: #18181b;
+          --border: #2a2a2e;
+          --fg: #f4f4f5;
+          --fg-dim: #a1a1aa;
+          --fg-mute: #52525b;
+          --pre-bg: #232328;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 14px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif;
+      }
+      code,
+      pre,
+      .mono {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 12.5px;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      header.app {
+        padding: 18px 28px 14px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      header.app h1 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+      }
+      header.app h1 .accent {
+        color: var(--accent);
+      }
+      header.app .meta {
+        color: var(--fg-dim);
+        font-size: 12.5px;
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      header.app .meta .badge {
+        background: var(--pre-bg);
+        padding: 2px 8px;
+        border-radius: 3px;
+      }
+      header.app .meta .dirty {
+        color: var(--warn);
+      }
+      .right {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+      }
+      button {
+        font: inherit;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--fg);
+        padding: 4px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      main {
+        padding: 18px 28px 60px;
+      }
+      section.summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+      .stat {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 12px 14px;
+      }
+      .stat .label {
+        color: var(--fg-dim);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .stat .value {
+        font-size: 18px;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+      .stat .sub {
+        color: var(--fg-mute);
+        font-size: 12px;
+      }
+      h2.section-title {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--fg-dim);
+        margin: 28px 0 10px;
+        font-weight: 600;
+      }
+      section.subsystems {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+        gap: 14px;
+      }
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+      }
+      .card header h3 {
+        margin: 0 0 2px;
+        font-size: 16px;
+      }
+      .card header h3 .en {
+        color: var(--fg-mute);
+        font-size: 13px;
+        font-weight: 400;
+        margin-left: 8px;
+      }
+      .card header .desc {
+        color: var(--fg-dim);
+        margin: 0 0 10px;
+        font-size: 12.5px;
+      }
+      .card .files {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .card .files li {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 4px 0;
+        border-top: 1px solid transparent;
+      }
+      .card .files li:not(:first-child) {
+        border-top: 1px solid var(--border);
+      }
+      .card .files .path {
+        font-family: ui-monospace, monospace;
+        font-size: 12.5px;
+        color: var(--fg);
+        flex: 1;
+        cursor: pointer;
+      }
+      .card .files .path:hover {
+        color: var(--accent);
+        text-decoration: underline;
+      }
+      .card .files .meta {
+        color: var(--fg-mute);
+        font-size: 11.5px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 4px;
+      }
+      .dot.ok { background: var(--ok); }
+      .dot.warn { background: var(--warn); }
+      .dot.err { background: var(--err); }
+      .dot.neutral { background: var(--fg-mute); }
+      .notes {
+        margin-top: 10px;
+        padding: 8px 10px;
+        background: var(--pre-bg);
+        border-radius: 4px;
+        font-size: 12px;
+      }
+      .notes ul {
+        margin: 0;
+        padding-left: 16px;
+      }
+      .notes .empty {
+        color: var(--fg-mute);
+      }
+      .features-block {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-top: 14px;
+      }
+      .features-block table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12.5px;
+      }
+      .features-block th,
+      .features-block td {
+        text-align: left;
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .features-block th {
+        color: var(--fg-dim);
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+      .features-block tr:last-child td {
+        border-bottom: none;
+      }
+      .features-block .empty {
+        color: var(--fg-mute);
+        text-align: center;
+        padding: 18px;
+      }
+      .badge.state {
+        font-family: ui-monospace, monospace;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 3px;
+        background: var(--pre-bg);
+      }
+      .state.passing { background: rgba(22, 163, 74, 0.15); color: var(--ok); }
+      .state.active { background: rgba(217, 119, 6, 0.15); color: var(--warn); }
+      .state.blocked { background: rgba(220, 38, 38, 0.15); color: var(--err); }
+      .state.not_started { background: var(--pre-bg); color: var(--fg-mute); }
+      /* file modal */
+      #modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        z-index: 100;
+      }
+      #modal.hidden {
+        display: none;
+      }
+      #modal .modal-content {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        max-width: 980px;
+        max-height: 90vh;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      #modal header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      #modal header strong {
+        font-family: ui-monospace, monospace;
+      }
+      #modal pre {
+        margin: 0;
+        padding: 16px;
+        overflow: auto;
+        background: var(--pre-bg);
+        white-space: pre-wrap;
+        word-break: break-word;
+        flex: 1;
+      }
+      footer.app {
+        padding: 24px 28px;
+        text-align: center;
+        color: var(--fg-mute);
+        font-size: 12px;
+      }
+      footer.app a {
+        color: var(--fg-dim);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="app">
+      <h1>
+        <span class="accent">harness</span>
+        <span id="project-name">—</span>
+      </h1>
+      <div class="meta" id="meta"></div>
+      <div class="right">
+        <button id="refresh">↻ refresh</button>
+      </div>
+    </header>
+    <main>
+      <section class="summary" id="summary"></section>
+
+      <h2 class="section-title">5 subsystems · 五子系统</h2>
+      <section class="subsystems" id="subsystems"></section>
+
+      <h2 class="section-title">features.json · 项目脊梁</h2>
+      <div class="features-block" id="features"></div>
+    </main>
+
+    <footer class="app">
+      Generated by <a href="https://github.com/Bojun-Vvibe/harness-kit">harness-kit</a> ·
+      Concepts from
+      <a href="https://github.com/walkinglabs/learn-harness-engineering">walkinglabs/learn-harness-engineering</a>
+    </footer>
+
+    <div id="modal" class="hidden">
+      <div class="modal-content">
+        <header>
+          <strong id="modal-path"></strong>
+          <button id="modal-close">close</button>
+        </header>
+        <pre id="modal-body">loading…</pre>
+      </div>
+    </div>
+
+    <script>
+      // ────────────────────────────────────────────────────────────────
+      // Render helpers
+      // ────────────────────────────────────────────────────────────────
+      const fmt = {
+        bytes(n) {
+          if (n == null) return "";
+          if (n < 1024) return n + " B";
+          if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+          return (n / 1024 / 1024).toFixed(1) + " MB";
+        },
+        ago(iso) {
+          if (!iso) return "";
+          const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+          if (diff < 60) return Math.round(diff) + "s ago";
+          if (diff < 3600) return Math.round(diff / 60) + "m ago";
+          if (diff < 86400) return Math.round(diff / 3600) + "h ago";
+          return Math.round(diff / 86400) + "d ago";
+        },
+      };
+
+      function dotFor(file) {
+        if (!file.exists) return '<span class="dot err"></span>';
+        if (file.todoCount && file.todoCount > 0)
+          return '<span class="dot warn" title="' + file.todoCount + ' TODO(s)"></span>';
+        return '<span class="dot ok"></span>';
+      }
+
+      function notesBlock(notes) {
+        if (!notes || notes.length === 0)
+          return '<div class="notes"><span class="empty">no issues — looking good ✓</span></div>';
+        const lis = notes.map((n) => "<li>" + escapeHtml(n) + "</li>").join("");
+        return '<div class="notes"><ul>' + lis + "</ul></div>";
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      // ────────────────────────────────────────────────────────────────
+      // Render entry points
+      // ────────────────────────────────────────────────────────────────
+      function renderHeader(d) {
+        document.title = "harness — " + d.project.name;
+        document.getElementById("project-name").textContent = d.project.name;
+        const meta = document.getElementById("meta");
+        const parts = [];
+        if (d.harness.version)
+          parts.push('<span class="badge">harness v' + d.harness.version + "</span>");
+        if (d.harness.agents && d.harness.agents.length)
+          parts.push(
+            '<span class="badge">agents: ' + d.harness.agents.join(", ") + "</span>",
+          );
+        if (d.stack.description)
+          parts.push('<span class="badge">stack: ' + d.stack.description + "</span>");
+        if (d.project.git) {
+          parts.push(
+            '<span class="badge">' +
+              d.project.git.branch +
+              "@" +
+              d.project.git.head +
+              "</span>",
+          );
+          if (d.project.git.dirty)
+            parts.push('<span class="dirty">working tree dirty</span>');
+        }
+        meta.innerHTML = parts.join("");
+      }
+
+      function renderSummary(d) {
+        const totalFiles = d.subsystems.reduce((sum, s) => sum + s.files.length, 0);
+        const totalTodos = d.subsystems.reduce(
+          (sum, s) => sum + s.files.reduce((a, f) => a + (f.todoCount || 0), 0),
+          0,
+        );
+        const totalNotes = d.subsystems.reduce((sum, s) => sum + s.notes.length, 0);
+        const featureBreakdown = Object.entries(d.features.by_state || {})
+          .map(([k, v]) => v + " " + k)
+          .join(", ") || "(none yet)";
+        const stats = [
+          {
+            label: "harness files",
+            value: totalFiles,
+            sub: "across 5 subsystems",
+          },
+          {
+            label: "TODO markers",
+            value: totalTodos,
+            sub: totalTodos === 0 ? "all filled in ✓" : "remaining in scaffolding",
+          },
+          {
+            label: "open notes",
+            value: totalNotes,
+            sub: totalNotes === 0 ? "no issues" : "see subsystem cards",
+          },
+          {
+            label: "features",
+            value: d.features.total,
+            sub: featureBreakdown,
+          },
+          {
+            label: "bootstrap prompt",
+            value: d.bootstrapPrompt.saved ? "saved" : "missing",
+            sub: d.bootstrapPrompt.saved
+              ? fmt.bytes(d.bootstrapPrompt.sizeBytes) +
+                " · cat .harness/bootstrap-prompt.txt"
+              : "run harness init first",
+          },
+        ];
+        document.getElementById("summary").innerHTML = stats
+          .map(
+            (s) =>
+              '<div class="stat"><div class="label">' +
+              s.label +
+              '</div><div class="value">' +
+              s.value +
+              '</div><div class="sub">' +
+              escapeHtml(s.sub) +
+              "</div></div>",
+          )
+          .join("");
+      }
+
+      function renderSubsystems(d) {
+        const root = document.getElementById("subsystems");
+        root.innerHTML = d.subsystems.map(renderSubsystem).join("");
+        // wire up file click → modal
+        root.querySelectorAll("[data-file]").forEach((el) => {
+          el.addEventListener("click", () => openFile(el.getAttribute("data-file")));
+        });
+      }
+
+      function renderSubsystem(s) {
+        const files = s.files
+          .map(
+            (f) =>
+              '<li>' +
+              dotFor(f) +
+              '<span class="path" data-file="' +
+              encodeURIComponent(f.path) +
+              '">' +
+              escapeHtml(f.path) +
+              "</span>" +
+              '<span class="meta">' +
+              (f.lines ? f.lines + " lines" : f.note || "") +
+              (f.todoCount ? " · " + f.todoCount + " TODO" : "") +
+              (f.modified ? " · " + fmt.ago(f.modified) : "") +
+              "</span></li>",
+          )
+          .join("");
+        return (
+          '<article class="card">' +
+          '<header><h3>' +
+          s.zh +
+          ' <span class="en">' +
+          s.en +
+          '</span></h3>' +
+          '<p class="desc">' +
+          escapeHtml(s.description) +
+          "</p></header>" +
+          (s.files.length ? '<ul class="files">' + files + "</ul>" : '<p class="meta empty">(no files yet — try harness init)</p>') +
+          notesBlock(s.notes) +
+          "</article>"
+        );
+      }
+
+      function renderFeatures(d) {
+        const root = document.getElementById("features");
+        if (!d.features.items || d.features.items.length === 0) {
+          root.innerHTML =
+            '<div class="empty">No features yet. Per FEATURES.md, add one when the human asks for it.</div>';
+          return;
+        }
+        const rows = d.features.items
+          .map(
+            (f) =>
+              "<tr>" +
+              "<td><strong>" +
+              escapeHtml(f.id) +
+              "</strong></td>" +
+              "<td>" +
+              escapeHtml(f.behavior || "") +
+              "</td>" +
+              '<td><span class="badge state ' +
+              f.state +
+              '">' +
+              f.state +
+              "</span></td>" +
+              '<td><code>' +
+              escapeHtml(f.verification || "") +
+              "</code></td>" +
+              "<td>" +
+              (f.evidence ? escapeHtml(f.evidence) : "<span class=meta>—</span>") +
+              "</td>" +
+              "</tr>",
+          )
+          .join("");
+        root.innerHTML =
+          "<table><thead><tr><th>id</th><th>behavior</th><th>state</th><th>verification</th><th>evidence</th></tr></thead><tbody>" +
+          rows +
+          "</tbody></table>";
+      }
+
+      // ────────────────────────────────────────────────────────────────
+      // File modal
+      // ────────────────────────────────────────────────────────────────
+      const modal = document.getElementById("modal");
+      document.getElementById("modal-close").addEventListener("click", () =>
+        modal.classList.add("hidden"),
+      );
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) modal.classList.add("hidden");
+      });
+      async function openFile(encodedPath) {
+        const path = decodeURIComponent(encodedPath);
+        document.getElementById("modal-path").textContent = path;
+        document.getElementById("modal-body").textContent = "loading…";
+        modal.classList.remove("hidden");
+        try {
+          const r = await fetch("/api/file?path=" + encodeURIComponent(path));
+          if (!r.ok) {
+            document.getElementById("modal-body").textContent = "error: " + r.status;
+            return;
+          }
+          document.getElementById("modal-body").textContent = await r.text();
+        } catch (e) {
+          document.getElementById("modal-body").textContent = String(e);
+        }
+      }
+
+      // ────────────────────────────────────────────────────────────────
+      // Bootstrap
+      // ────────────────────────────────────────────────────────────────
+      async function load() {
+        try {
+          const r = await fetch("/api/project");
+          const d = await r.json();
+          renderHeader(d);
+          renderSummary(d);
+          renderSubsystems(d);
+          renderFeatures(d);
+        } catch (e) {
+          document.body.innerHTML =
+            '<pre style="padding:24px;color:var(--err)">Failed to load /api/project: ' +
+            escapeHtml(String(e)) +
+            "</pre>";
+        }
+      }
+      document.getElementById("refresh").addEventListener("click", load);
+      load();
+    </script>
+  </body>
+</html>

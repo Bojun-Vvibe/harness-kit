@@ -152,15 +152,16 @@ Save it as a snippet so you can reuse it on every new repo you scaffold.
 
 ## Commands
 
-The CLI is intentionally tiny: two scaffolding commands and two diagnostics.
-Everything else lives in the generated repo as markdown + scripts you can
-read, grep, and modify.
+The CLI is intentionally tiny: two scaffolding commands, two diagnostics,
+and one viewer. Everything else lives in the generated repo as markdown +
+scripts you can read, grep, and modify.
 
 | Command | What it does |
 |---|---|
 | `harness init [dir]` | Scaffold a fresh harness (interactive). Writes ~18 files. Prints the bootstrap prompt at the end. |
 | `harness inject [dir]` | Add a harness to an existing repo. Dry-run by default; `--apply` to write. Safe-merges existing `AGENTS.md` / `Makefile`. |
-| `harness doctor [dir]` | Score the 5 subsystems out of 5 each + cold-start test (5 questions). |
+| `harness doctor [dir]` | Score the 5 subsystems out of 5 each + cold-start test (5 questions). Same labels as `view`. |
+| `harness view [dir]` | Open a localhost dashboard (default port 3737). Visualizes the project's harness organized by **指令 / 工具 / 环境 / 状态 / 反馈**. |
 | `harness clean [dir]` | Run the L12 5-dimension exit-clean (build / tests / progress / artifacts / startup). |
 
 After init, you typically don't need the `harness` CLI again. The day-to-day

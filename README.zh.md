@@ -134,13 +134,14 @@ bootstrap 期间的硬规则：
 
 ## 命令
 
-CLI 故意做得极小：两个脚手架命令 + 两个诊断命令。其余日常工作都在生成出来的仓库里——markdown + 脚本，可读、可 grep、可改。
+CLI 故意做得极小：2 个脚手架命令 + 2 个诊断命令 + 1 个 viewer。其余日常工作都在生成出来的仓库里——markdown + 脚本，可读、可 grep、可改。
 
 | 命令 | 干什么 |
 |---|---|
 | `harness init [dir]` | 全新项目装 harness（交互式），写入约 18 个文件。结束时自动打印 bootstrap prompt |
 | `harness inject [dir]` | 给老项目注入。默认 dry-run；`--apply` 真正写入。已有 `AGENTS.md` / `Makefile` 安全合并 |
-| `harness doctor [dir]` | 给五子系统每项打分（满分 5），加冷启动测试（5 个问题）|
+| `harness doctor [dir]` | 给五子系统每项打分（满分 5），加冷启动测试（5 个问题）。和 `view` 用同一套标签 |
+| `harness view [dir]` | 启一个 localhost dashboard（默认端口 3737），按 **指令 / 工具 / 环境 / 状态 / 反馈** 5 个子系统可视化当前项目的 harness |
 | `harness clean [dir]` | 跑 L12 五维度 exit-clean（构建/测试/进度/工件/启动路径）|
 
 init 之后基本不再需要 `harness` CLI。日常工作流都在：

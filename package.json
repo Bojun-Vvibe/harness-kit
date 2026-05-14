@@ -1,6 +1,6 @@
 {
   "name": "harness-kit",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A stack-agnostic scaffolding kit for AI-coding-agent harnesses. Drops a complete 5-subsystem harness (instructions / state / feedback / observability / governance) into any new or existing repo. Based on walkinglabs/learn-harness-engineering.",
   "keywords": [
     "ai-agents",

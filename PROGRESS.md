@@ -5,11 +5,11 @@
 
 ## Current state
 
-- **Last commit**: `576f53f` (v0.2.1, fix(inject): preserve user edits in if-missing files)
+- **Last commit**: `3acb62b` (will be superseded by v0.3.0 commit)
 - **Branch**: `main`
-- **Build**: passing — `dist/cli.cjs` 37.44 KB
-- **Tests**: 32/32 passing (lang.test.ts 8, utils.test.ts 8, init.test.ts 16)
-- **Active feature**: (none) — see FEATURES.md before adding one
+- **Build**: passing — `dist/cli.cjs` 54.70 KB
+- **Tests**: 37/37 passing (lang 8, utils 8, view 4, init 17)
+- **Active feature**: (none) — F01 just transitioned `active → passing`
 
 ## Open blockers
 
@@ -17,11 +17,25 @@
 
 ## Next steps (priority order)
 
-1. Implement `harness view` — local web dashboard showing the 5-subsystem snapshot of the current project (指令 / 工具 / 环境 / 状态 / 反馈). Tracked as the next conversation step, not yet a feature in `features.json`.
-2. Refactor `harness doctor` to use the same canonical 5-subsystem labels (instead of the v0.1.x split of instructions/state/feedback/observability/governance).
-3. Decide whether to publish to npm (currently install path is `git clone && npm i -g .`).
+1. Decide whether to publish to npm (v0.3.0 is the first release with a real "killer feature" beyond scaffolding — the dashboard).
+2. Optional polish: live-reload the dashboard via SSE so file edits show without manual refresh.
+3. Optional: GitHub Pages screenshot of the dashboard for the README.
 
 ---
+
+## Session 2026-05-14 — F01 done: `harness view` dashboard + doctor refactor (v0.3.0)
+
+- Per FEATURES.md, opened F01 in features.json before any code: behavior + verification + state="active".
+- Built three new files:
+  - `src/utils/project-data.ts` (~330 lines) — collector that walks the project and produces a JSON snapshot of all 5 subsystems plus features / Makefile parse / stack detection / git state / bootstrap-prompt presence.
+  - `src/commands/view.ts` (~140 lines) — tiny Node http server (no Express) on 127.0.0.1:3737. Routes: `/` serves the dashboard HTML, `/api/project` serves the JSON snapshot, `/api/file?path=…` serves raw file contents (with path-traversal guard). Auto-opens the browser via `open`/`xdg-open`/`start` unless `--no-open`. Supports `--port 0` for ephemeral.
+  - `templates/web/index.html` (~430 lines, single file with inline CSS+JS, dark-mode aware) — header strip + 5 summary stats + 5 subsystem cards + features.json table. Click any file → modal with raw content. Ships under `templates/` so the existing `files[]` already covers it.
+- Refactored `src/commands/doctor.ts` to use the canonical L02 split (指令 / 工具 / 环境 / 状态 / 反馈), so `view` and `doctor` speak the same language. Total still 30 (5 subsystems × 5 + cold-start 5).
+- Registered `harness view` in `src/cli.ts` with `--port` and `--no-open`. Added to unknown-command suggestion list.
+- Added 4 e2e tests in `tests/view.test.ts` covering: server boots + URL printed, `/api/project` returns 5 subsystems with both zh and en labels in the documented order, `/` serves the dashboard HTML, `/api/file` works + rejects path traversal + returns 404 for missing files. Added 2 doctor tests asserting the new labels are present and the legacy ones (`observability`, `governance`) are gone.
+- Acted as the agent for the dogfood install: filled AGENTS.md / Makefile / CONSTRAINTS.md TODOs from project knowledge so harness-kit's own `doctor` now scores **30/30 (100%)** on itself.
+- Verification: `npm test` 37/37 ✓ ; `bash scripts/validate-feature.sh F01` exit 0 ✓ ; `bash scripts/exit-clean.sh` 5/5 ✓ ; manual smoke `curl /api/project` shows files/subsystem = 11/6/5/3/6 on harness-kit's own dogfood install.
+- F01 marked `passing` with `evidence` pointing at the dogfood-install commit and tests/view.test.ts.
 
 ## Session 2026-05-14 — dogfood: install harness-kit on harness-kit itself
 
