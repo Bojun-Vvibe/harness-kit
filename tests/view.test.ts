@@ -187,4 +187,70 @@ describe("harness view", () => {
       await v.stop();
     }
   });
+
+  it("/api/project includes a todos summary with file/line/text entries", async () => {
+    const dir = makeTmp();
+    execSync(`node ${CLI} init ${dir} --yes --agents claude-code --name v-todos --lang en`, {
+      stdio: "pipe",
+    });
+    const v = await spawnView(dir);
+    try {
+      const r = await fetch(`${v.url}/api/project`);
+      const data = (await r.json()) as {
+        todos: {
+          total: number;
+          byFile: {
+            path: string;
+            entries: { line: number; text: string; kind: "block" | "inline" }[];
+          }[];
+        };
+      };
+      // A freshly init'd repo has plenty of `> **TODO**:` markers in the
+      // generated docs (CONSTRAINTS.md, architecture.md, etc.).
+      expect(data.todos.total).toBeGreaterThan(0);
+      expect(data.todos.byFile.length).toBeGreaterThan(0);
+      // Every file group has at least one entry, and each entry is well-shaped.
+      for (const file of data.todos.byFile) {
+        expect(file.entries.length).toBeGreaterThan(0);
+        for (const e of file.entries) {
+          expect(e.line).toBeGreaterThanOrEqual(1);
+          expect(typeof e.text).toBe("string");
+          expect(["block", "inline"]).toContain(e.kind);
+        }
+      }
+      // CONSTRAINTS.md ships with TODO markers — must be in the list.
+      const constraints = data.todos.byFile.find((f) => f.path === "CONSTRAINTS.md");
+      expect(constraints).toBeDefined();
+      expect(constraints!.entries.length).toBeGreaterThan(0);
+      // Sort order: most-TODO files first.
+      for (let i = 1; i < data.todos.byFile.length; i++) {
+        expect(data.todos.byFile[i - 1]!.entries.length).toBeGreaterThanOrEqual(
+          data.todos.byFile[i]!.entries.length,
+        );
+      }
+    } finally {
+      await v.stop();
+    }
+  });
+
+  it("the dashboard HTML wires up a TODOs section + line-jump support in the file modal", async () => {
+    const dir = makeTmp();
+    execSync(`node ${CLI} init ${dir} --yes --agents claude-code --name v-html-todos --lang en`, {
+      stdio: "pipe",
+    });
+    const v = await spawnView(dir);
+    try {
+      const r = await fetch(`${v.url}/`);
+      const html = await r.text();
+      expect(html).toContain('id="todos"');
+      expect(html).toContain("TODOs to fill in");
+      // line-jump infrastructure
+      expect(html).toContain('class="line"');
+      expect(html).toContain('"highlighted"');
+      // the TODO list renderer references kind + line/text
+      expect(html).toContain('"kind"');
+    } finally {
+      await v.stop();
+    }
+  });
 });

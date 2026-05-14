@@ -5,11 +5,11 @@
 
 ## Current state
 
-- **Last commit**: `1430c60` (will be superseded by v0.3.1 commit)
+- **Last commit**: `c98b5e7` (will be superseded by v0.3.2 commit)
 - **Branch**: `main`
-- **Build**: passing — `dist/cli.cjs` 54.78 KB
-- **Tests**: 45/45 passing (lang 8, utils 8, view 4, init 17, validate-feature 8)
-- **Active feature**: (none) — F02 transitioned `active → passing` this session
+- **Build**: passing — `dist/cli.cjs` 56.17 KB
+- **Tests**: 47/47 passing (lang 8, utils 8, view 6, init 17, validate-feature 8)
+- **Active feature**: (none) — F03 transitioned `active → passing` this session
 
 ## Open blockers
 
@@ -17,11 +17,39 @@
 
 ## Next steps (priority order)
 
-1. Decide whether to publish v0.3.x to npm (audit pass + dashboard make this a strong public release).
-2. Optional: `harness view` live-reload via SSE so file edits show without manual refresh.
+1. Decide whether to publish v0.3.x to npm.
+2. Optional: live-reload the dashboard via SSE or a `?watch` query so file edits show without manual refresh (would compose well with the new TODO drilldown — fix a TODO, see it disappear).
 3. Optional: README screenshot of the dashboard for hero image.
 
 ---
+
+## Session 2026-05-14 — F03 done: TODO drilldown in the dashboard (v0.3.2)
+
+A worked example of the FEATURES.md flow end-to-end on a brand-new feature.
+
+### What got built
+
+The dashboard now exposes every TODO marker across the project as a clickable list. Click a TODO → file modal opens scrolled to that line, with the line highlighted. Behind the scenes:
+
+- `src/utils/project-data.ts` — added `TodoEntry` / `TodoFile` / `TodoSummary` types; new `collectTodos(cwd, files)` that scans the de-duped union of files surfaced by the 5 subsystems and extracts every `> **TODO**:` (block form) and inline `TODO:` (with line + text + kind). Sorted by entry count desc, then path asc.
+- `templates/web/index.html` — new "TODOs to fill in · 待填占位" section with a per-file card (path + count + clickable list of `line | text | kind`). The file modal got rebuilt: lines render as `<span class="line" id="line-N">` so we can scroll-into-view + add `.highlighted` CSS. `openFile(path, line?)` now accepts an optional line and drives the highlight via `requestAnimationFrame`.
+- `tests/view.test.ts` — added 2 tests: one asserts `/api/project.todos` schema (total > 0, byFile non-empty, entries shaped correctly, CONSTRAINTS.md present, sort order respected); one asserts the dashboard HTML wires up `id="todos"`, `class="line"`, `"highlighted"`, and `"kind"`.
+
+### Process record (FEATURES.md flow)
+
+1. Defined behavior + verification + auto_verify before writing any code.
+2. WIP=1 check (F01 / F02 both passing → 0 active) → opened F03 active.
+3. Built the smallest thing that satisfies the verification.
+4. `bash scripts/validate-feature.sh F03` → exit 0 (auto_verify=npm test passed 47/47).
+5. Manual smoke `curl /api/project | jq .todos` on harness-kit's own dogfood install: 7 TODOs across 4 files (architecture.md / harness.yml / CONSTRAINTS.md / QUALITY.md). ✓
+6. Updated F03 state → `passing` with evidence pointing at this commit + tests/view.test.ts.
+
+### Verification numbers
+
+- 47/47 tests passing (was 45/45 — added 2 view tests)
+- bundle 56.17 KB (was 54.78 KB — +1.4 KB for the TODO collector + UI section)
+- F03 active → passing in one session, no scope creep
+- harness-kit's own dashboard now demos the new feature on itself (7 real TODOs in 4 files clickable from the homepage)
 
 ## Session 2026-05-14 — F02 done: rigidity audit + verification model rework (v0.3.1)
 
@@ -67,25 +95,11 @@ rules and soften them.
 | 8 | TODO format `TODO(@owner, YYYY-MM-DD)` mandatory | moved to "Suggested" with team-call note |
 | 9 | dashboard didn't show auto/manual form | features table now has `form` column with auto/manual badge |
 
-### Files touched
-
-- templates/state/FEATURES.md.tpl (rules 1, 2, 6 + new schema)
-- templates/instructions/AGENTS.md.tpl (rules 1, 4, 5)
-- templates/instructions/CONSTRAINTS.md.tpl (rules 4, 7, 8 — full rewrite)
-- templates/feedback/scripts/exit-clean.sh.tpl (rule 3)
-- templates/feedback/scripts/validate-feature.sh.tpl (verification rework)
-- templates/prompts/bootstrap.{en,zh,ja,ko,es,pt,fr,de}.txt (rules 1, 2, 7)
-- src/utils/project-data.ts + templates/web/index.html (rule 9: dashboard badge)
-- harness-kit's own AGENTS.md / CONSTRAINTS.md / FEATURES.md / scripts/* re-synced from updated templates
-- features.json (F01 + F02 entries with new schema, F02 marked passing)
-- tests/validate-feature.test.ts (new file, 8 tests covering both branches)
-
 ### Verification
 
-- `npm test` → 45/45 ✓ (was 37/37 — added 8 tests for validate-feature.sh)
-- `bash scripts/validate-feature.sh F02` → exits 0, prints
-  "F02 auto-verified" ✓
-- `bash scripts/exit-clean.sh` → 5/5 dimensions green ✓
+- `npm test` → 45/45 ✓ (was 37/37)
+- `bash scripts/validate-feature.sh F02` → exits 0 cleanly
+- `bash scripts/exit-clean.sh` → 5/5 dimensions green
 - F02 marked `passing` with evidence pointing at this commit + tests.
 
 ## Session 2026-05-14 — F01 done: `harness view` dashboard + doctor refactor (v0.3.0)

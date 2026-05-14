@@ -15,12 +15,22 @@
     {
       "id": "F02",
       "behavior": "Verification model is two-field. `verification` is always a human-readable description; `auto_verify` is an optional invocation that mechanically checks it (any tool bash can launch — curl, playwright, python, your own CLI). Description-only features require a human-run `bash scripts/validate-feature.sh <id> --ack` which writes `.harness/feature-acks/<id>.txt`. Agents cannot self-ack. Plus: 8 other rigid rules (WIP=1 wording, hardcoded score bar, 24h freshness fail, no-commit-on-fail, session ceremony for trivial work, never-reset state, '5–15 rules' count, TODO format) softened or removed without losing the L09 / L07 protections.",
-      "verification": "FEATURES.md describes both fields with examples and updates the state machine + hard rules. validate-feature.sh dispatches: if auto_verify is set → run via `bash -c`, exit code decides; otherwise → print description, require --ack which writes a timestamped + sha + email record. The agent cannot mark passing without either an auto_verify exit-0 run or an ack file on disk. tests/validate-feature.test.ts has 8 tests covering both branches and error cases. The 8 other rigidity fixes are reflected in templates (FEATURES.md, AGENTS.md, CONSTRAINTS.md, exit-clean.sh) and all 8 bootstrap prompts (en/zh/ja/ko/es/pt/fr/de). The view dashboard shows an 'auto / manual' badge per feature.",
+      "verification": "FEATURES.md describes both fields with examples and updates the state machine + hard rules. validate-feature.sh dispatches: if auto_verify is set → run via `bash -c`, exit code decides; otherwise → print description, require --ack which writes a timestamped + sha + email record. The agent cannot mark passing without either an auto_verify exit-0 run or an ack file on disk. tests/init.test.ts has at least 2 new tests covering both branches (auto_verify success path; description path requiring --ack to succeed).",
       "auto_verify": "npm test",
       "state": "passing",
       "evidence": "commit 1430c60 + tests/validate-feature.test.ts (8/8 passing, total 45/45) + bash scripts/validate-feature.sh F02 exits 0 cleanly",
       "created_at": "2026-05-14T02:12:12Z",
       "updated_at": "2026-05-14T02:24:31Z"
+    },
+    {
+      "id": "F03",
+      "behavior": "User sees every TODO marker in the project on the dashboard, grouped by file with line numbers and the actual line text. Clicking any TODO entry opens the existing file modal scrolled to that line and visually highlights it — so TODOs become clickable work items rather than abstract counts.",
+      "verification": "After running `harness view` on any harness-kit-scaffolded project: (1) the dashboard renders a 'TODOs to fill in' section, grouped by file, each entry showing `path:line` + the actual line text; (2) `GET /api/project` returns a `todos` field with `total` and `byFile` arrays containing the same data; (3) clicking a TODO entry opens the file modal AND the corresponding line is scrolled into view AND has a `.highlighted` CSS class; (4) a project with zero TODOs shows an empty state, not a broken section; (5) the existing 4 view tests + 1 new todos test all pass under `npm test`; (6) path-traversal in /api/file is still rejected (regression of v0.3.0 fix).",
+      "auto_verify": "npm test",
+      "state": "passing",
+      "evidence": "commit c98b5e7 + tests/view.test.ts (now 6 tests, was 4 — added 2 covering /api/project todos schema and dashboard HTML wiring) + manual smoke on harness-kit dogfood install (api/project returns 7 TODOs across 4 files: architecture.md / harness.yml / CONSTRAINTS.md / QUALITY.md). Total tests 47/47 passing.",
+      "created_at": "2026-05-14T02:35:54Z",
+      "updated_at": "2026-05-14T02:39:26Z"
     }
   ]
 }

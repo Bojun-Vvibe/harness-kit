@@ -258,6 +258,73 @@
         text-align: center;
         padding: 18px;
       }
+      /* todos block */
+      .todos-block {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-top: 14px;
+      }
+      .todos-block .empty {
+        color: var(--fg-mute);
+        text-align: center;
+        padding: 18px;
+      }
+      .todo-file {
+        margin-bottom: 14px;
+      }
+      .todo-file:last-child {
+        margin-bottom: 0;
+      }
+      .todo-file h4 {
+        margin: 0 0 6px;
+        font: 12.5px/1.3 ui-monospace, monospace;
+        color: var(--fg);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .todo-file h4 .count {
+        color: var(--fg-mute);
+        font-weight: 400;
+        font-size: 11.5px;
+      }
+      .todo-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        border-top: 1px solid var(--border);
+      }
+      .todo-list li {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 4px 0;
+        border-bottom: 1px solid var(--border);
+        font: 12.5px/1.4 ui-monospace, monospace;
+        cursor: pointer;
+      }
+      .todo-list li:hover {
+        background: var(--pre-bg);
+      }
+      .todo-list li .ln {
+        color: var(--fg-mute);
+        min-width: 38px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .todo-list li .text {
+        flex: 1;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .todo-list li .kind {
+        color: var(--fg-mute);
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
       .badge.state {
         font-family: ui-monospace, monospace;
         font-size: 11px;
@@ -313,6 +380,15 @@
         word-break: break-word;
         flex: 1;
       }
+      #modal pre .line {
+        display: block;
+        padding: 0 4px;
+        scroll-margin-top: 60px;
+      }
+      #modal pre .line.highlighted {
+        background: rgba(217, 119, 6, 0.25);
+        outline: 2px solid var(--warn);
+      }
       footer.app {
         padding: 24px 28px;
         text-align: center;
@@ -340,6 +416,9 @@
 
       <h2 class="section-title">5 subsystems · 五子系统</h2>
       <section class="subsystems" id="subsystems"></section>
+
+      <h2 class="section-title">TODOs to fill in · 待填占位</h2>
+      <div class="todos-block" id="todos"></div>
 
       <h2 class="section-title">features.json · 项目脊梁</h2>
       <div class="features-block" id="features"></div>
@@ -530,6 +609,68 @@
         );
       }
 
+      function renderTodos(d) {
+        const root = document.getElementById("todos");
+        if (!d.todos || d.todos.total === 0) {
+          root.innerHTML =
+            '<div class="empty">No TODOs in scaffolding files — looking clean ✓</div>';
+          return;
+        }
+        const blocks = d.todos.byFile
+          .map((file) => {
+            const items = file.entries
+              .map(
+                (e) =>
+                  '<li data-file="' +
+                  encodeURIComponent(file.path) +
+                  '" data-line="' +
+                  e.line +
+                  '">' +
+                  '<span class="ln">' +
+                  e.line +
+                  "</span>" +
+                  '<span class="text">' +
+                  escapeHtml(e.text) +
+                  "</span>" +
+                  '<span class="kind">' +
+                  e.kind +
+                  "</span>" +
+                  "</li>",
+              )
+              .join("");
+            return (
+              '<div class="todo-file">' +
+              '<h4><span data-file="' +
+              encodeURIComponent(file.path) +
+              '" class="path">' +
+              escapeHtml(file.path) +
+              '</span><span class="count">' +
+              file.entries.length +
+              " TODO" +
+              (file.entries.length === 1 ? "" : "s") +
+              "</span></h4>" +
+              '<ul class="todo-list">' +
+              items +
+              "</ul></div>"
+            );
+          })
+          .join("");
+        root.innerHTML = blocks;
+        // Wire each entry → open file modal at the corresponding line
+        root.querySelectorAll("li[data-file]").forEach((el) => {
+          el.addEventListener("click", () => {
+            const file = el.getAttribute("data-file");
+            const line = Number.parseInt(el.getAttribute("data-line") || "0", 10);
+            openFile(file, line);
+          });
+        });
+        // Header file path also opens (no line)
+        root.querySelectorAll("h4 .path[data-file]").forEach((el) => {
+          el.style.cursor = "pointer";
+          el.addEventListener("click", () => openFile(el.getAttribute("data-file")));
+        });
+      }
+
       function renderFeatures(d) {
         const root = document.getElementById("features");
         if (!d.features.items || d.features.items.length === 0) {
@@ -583,20 +724,43 @@
       modal.addEventListener("click", (e) => {
         if (e.target === modal) modal.classList.add("hidden");
       });
-      async function openFile(encodedPath) {
+      async function openFile(encodedPath, lineNumber) {
         const path = decodeURIComponent(encodedPath);
         document.getElementById("modal-path").textContent = path;
-        document.getElementById("modal-body").textContent = "loading…";
+        const body = document.getElementById("modal-body");
+        body.textContent = "loading…";
         modal.classList.remove("hidden");
         try {
           const r = await fetch("/api/file?path=" + encodeURIComponent(path));
           if (!r.ok) {
-            document.getElementById("modal-body").textContent = "error: " + r.status;
+            body.textContent = "error: " + r.status;
             return;
           }
-          document.getElementById("modal-body").textContent = await r.text();
+          const text = await r.text();
+          // Render each line in its own <span> so we can scroll/highlight.
+          const lines = text.split("\n");
+          body.innerHTML = lines
+            .map(
+              (line, i) =>
+                '<span class="line" id="line-' +
+                (i + 1) +
+                '">' +
+                escapeHtml(line || " ") +
+                "</span>",
+            )
+            .join("\n");
+          if (lineNumber && lineNumber > 0) {
+            const target = body.querySelector("#line-" + lineNumber);
+            if (target) {
+              target.classList.add("highlighted");
+              // After the modal is laid out, scroll to the line.
+              requestAnimationFrame(() =>
+                target.scrollIntoView({ behavior: "instant", block: "center" }),
+              );
+            }
+          }
         } catch (e) {
-          document.getElementById("modal-body").textContent = String(e);
+          body.textContent = String(e);
         }
       }
 
@@ -610,6 +774,7 @@
           renderHeader(d);
           renderSummary(d);
           renderSubsystems(d);
+          renderTodos(d);
           renderFeatures(d);
         } catch (e) {
           document.body.innerHTML =

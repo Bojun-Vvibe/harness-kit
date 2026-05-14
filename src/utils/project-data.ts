@@ -30,6 +30,22 @@ export interface FileEntry {
   note?: string;
 }
 
+export interface TodoEntry {
+  line: number;
+  text: string;
+  kind: "block" | "inline"; // block = `> **TODO**:` markdown form; inline = bare `TODO:` in source
+}
+
+export interface TodoFile {
+  path: string;
+  entries: TodoEntry[];
+}
+
+export interface TodoSummary {
+  total: number;
+  byFile: TodoFile[];
+}
+
 export interface SubsystemSnapshot {
   key: "instructions" | "tools" | "environment" | "state" | "feedback";
   zh: string;
@@ -83,6 +99,7 @@ export interface ProjectSnapshot {
   stack: { manifests: string[]; description: string };
   bootstrapPrompt: { saved: boolean; sizeBytes?: number };
   subsystems: SubsystemSnapshot[];
+  todos: TodoSummary;
 }
 
 const HARNESS_STANDARD_TARGETS = new Set([
@@ -144,6 +161,19 @@ export async function collectProjectData(cwd: string): Promise<ProjectSnapshot> 
     await collectFeedback(cwd, makefile),
   ];
 
+  // 8. todos across all surfaced files (de-duped + sorted)
+  const todoSeen = new Set<string>();
+  const todoSourceFiles: string[] = [];
+  for (const sub of subsystems) {
+    for (const f of sub.files) {
+      if (f.exists && !f.note && !todoSeen.has(f.path)) {
+        todoSeen.add(f.path);
+        todoSourceFiles.push(f.path);
+      }
+    }
+  }
+  const todos = await collectTodos(cwd, todoSourceFiles);
+
   return {
     project,
     harness,
@@ -152,6 +182,7 @@ export async function collectProjectData(cwd: string): Promise<ProjectSnapshot> 
     stack,
     bootstrapPrompt,
     subsystems,
+    todos,
   };
 }
 
@@ -387,6 +418,48 @@ function countTodos(text: string): number {
   const b = (text.match(/\bTODO\b\s*\(?[^)]*\)?\s*:/g) ?? []).length;
   // Avoid double-counting when both forms overlap.
   return Math.max(a, b);
+}
+
+const TODO_BLOCK_RE = />\s*\*\*TODO\*\*:/;
+const TODO_INLINE_RE = /\bTODO\b\s*\(?[^)]*\)?\s*:/;
+
+/**
+ * Walk a list of files and collect every TODO marker per file with line + text.
+ * Only files relative to cwd are inspected (the caller passes a vetted list).
+ * Files we can't read are silently skipped.
+ */
+async function collectTodos(cwd: string, files: string[]): Promise<TodoSummary> {
+  const byFile: TodoFile[] = [];
+  let total = 0;
+  for (const rel of files) {
+    const full = join(cwd, rel);
+    let text = "";
+    try {
+      text = await readText(full);
+    } catch {
+      continue;
+    }
+    const lines = text.split("\n");
+    const entries: TodoEntry[] = [];
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i] ?? "";
+      const isBlock = TODO_BLOCK_RE.test(line);
+      const isInline = !isBlock && TODO_INLINE_RE.test(line);
+      if (!isBlock && !isInline) continue;
+      entries.push({
+        line: i + 1,
+        text: line.length > 240 ? `${line.slice(0, 240)}…` : line,
+        kind: isBlock ? "block" : "inline",
+      });
+    }
+    if (entries.length > 0) {
+      byFile.push({ path: rel, entries });
+      total += entries.length;
+    }
+  }
+  // Stable order: most TODOs first, then alphabetical
+  byFile.sort((a, b) => b.entries.length - a.entries.length || a.path.localeCompare(b.path));
+  return { total, byFile };
 }
 
 async function readJsonSafe<T>(path: string): Promise<T | undefined> {
