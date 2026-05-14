@@ -47,28 +47,31 @@ export async function runInject(opts: InjectOptions): Promise<void> {
 
   // Plan
   const plan: PlannedChange[] = [];
-  const planFile = (rel: string, when: "always" | "if-missing" | "merge-md" | "merge-make") => {
-    plan.push({ path: rel, action: actionFor(rel, when, existing) });
+  const planFile = async (
+    rel: string,
+    when: "always" | "if-missing" | "merge-md" | "merge-make",
+  ) => {
+    plan.push({ path: rel, action: await actionFor(cwd, rel, when, existing) });
   };
 
-  planFile("AGENTS.md", "merge-md");
-  planFile("CONSTRAINTS.md", "if-missing");
-  planFile("docs/architecture.md", "if-missing");
-  planFile("docs/decisions.md", "if-missing");
-  planFile("docs/testing-standards.md", "if-missing");
-  planFile("PROGRESS.md", "if-missing");
-  planFile("features.json", "if-missing");
-  planFile("FEATURES.md", "if-missing");
-  planFile("QUALITY.md", "if-missing");
-  planFile("Makefile", "merge-make");
-  planFile("scripts/exit-clean.sh", "if-missing");
-  planFile("scripts/session-init.sh", "if-missing");
-  planFile("scripts/validate-feature.sh", "if-missing");
-  planFile("scripts/e2e-check.sh", "if-missing");
-  planFile("docs/templates/sprint-contract.md", "if-missing");
-  planFile("docs/templates/rubric.md", "if-missing");
-  planFile(".github/workflows/harness.yml", "if-missing");
-  planFile(".harnessrc.json", "always");
+  await planFile("AGENTS.md", "merge-md");
+  await planFile("CONSTRAINTS.md", "if-missing");
+  await planFile("docs/architecture.md", "if-missing");
+  await planFile("docs/decisions.md", "if-missing");
+  await planFile("docs/testing-standards.md", "if-missing");
+  await planFile("PROGRESS.md", "if-missing");
+  await planFile("features.json", "if-missing");
+  await planFile("FEATURES.md", "if-missing");
+  await planFile("QUALITY.md", "if-missing");
+  await planFile("Makefile", "merge-make");
+  await planFile("scripts/exit-clean.sh", "if-missing");
+  await planFile("scripts/session-init.sh", "if-missing");
+  await planFile("scripts/validate-feature.sh", "if-missing");
+  await planFile("scripts/e2e-check.sh", "if-missing");
+  await planFile("docs/templates/sprint-contract.md", "if-missing");
+  await planFile("docs/templates/rubric.md", "if-missing");
+  await planFile(".github/workflows/harness.yml", "if-missing");
+  await planFile(".harnessrc.json", "always");
 
   log.step("Planned changes");
   for (const item of plan) {
@@ -181,16 +184,22 @@ const TEMPLATE_MAP: Record<string, string> = {
   ".github/workflows/harness.yml": "governance/harness.yml.tpl",
 };
 
-function actionFor(
+async function actionFor(
+  cwd: string,
   rel: string,
   when: "always" | "if-missing" | "merge-md" | "merge-make",
   existing: ReturnType<typeof detectExisting> extends Promise<infer T> ? T : never,
-): "create" | "merge" | "skip" {
+): Promise<"create" | "merge" | "skip"> {
   if (when === "always") return "create";
+  // Special-cased files with explicit existing-state probes:
   if (rel === "AGENTS.md") return existing.hasAgentsMd ? "merge" : "create";
   if (rel === "Makefile") return existing.hasMakefile ? "merge" : "create";
-  if (rel === "PROGRESS.md") return existing.hasProgress ? "skip" : "create";
-  if (rel === "features.json") return existing.hasFeatures ? "skip" : "create";
+  // Generic "if-missing" semantics for everything else: skip if file exists,
+  // create otherwise. This preserves any user edits to CONSTRAINTS.md, docs/,
+  // FEATURES.md, scripts/, etc.
+  if (when === "if-missing") {
+    return (await pathExists(join(cwd, rel))) ? "skip" : "create";
+  }
   return "create";
 }
 

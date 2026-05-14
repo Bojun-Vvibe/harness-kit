@@ -132,6 +132,48 @@ describe("harness inject", () => {
     const pkg = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
     expect(pkg.name).toBe("old");
   });
+
+  it("preserves user edits in if-missing files (CONSTRAINTS.md, docs/, scripts/, etc.)", () => {
+    const dir = makeTmp();
+    execSync(`mkdir -p ${dir} && echo '{"name":"old"}' > ${dir}/package.json`);
+    // First inject: scaffold
+    execSync(`node ${CLI} inject ${dir} --apply --force`, { stdio: "pipe" });
+    // Simulate user editing several "if-missing" files
+    const userMark = "# USER-EDITED — must not be overwritten";
+    const filesToEdit = [
+      "CONSTRAINTS.md",
+      "docs/architecture.md",
+      "docs/decisions.md",
+      "docs/testing-standards.md",
+      "FEATURES.md",
+      "QUALITY.md",
+      "scripts/exit-clean.sh",
+      "scripts/session-init.sh",
+      "scripts/validate-feature.sh",
+      "scripts/e2e-check.sh",
+      "docs/templates/sprint-contract.md",
+      "docs/templates/rubric.md",
+      ".github/workflows/harness.yml",
+    ];
+    const { writeFileSync } = require("node:fs");
+    for (const f of filesToEdit) {
+      writeFileSync(join(dir, f), `${userMark}\n`);
+    }
+    // Second inject (simulates v0.1.x → v0.2.0 upgrade) — must NOT clobber user's content
+    const out = execSync(`node ${CLI} inject ${dir} --apply --force`, {
+      encoding: "utf8",
+    });
+    expect(out).toContain("Planned changes");
+    for (const f of filesToEdit) {
+      const after = readFileSync(join(dir, f), "utf8");
+      expect(after).toContain(userMark);
+    }
+    // The plan should show SKIP for these
+    for (const f of filesToEdit) {
+      const escaped = f.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      expect(out).toMatch(new RegExp(`SKIP\\s+${escaped}`));
+    }
+  });
 });
 
 describe("harness CLI surface (v0.2.0)", () => {
