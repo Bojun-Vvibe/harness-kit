@@ -20,11 +20,10 @@ make check     # lint + typecheck + tests + build (the full bar)
 ## Hard rules (read before editing anything)
 
 - See [`CONSTRAINTS.md`](./CONSTRAINTS.md) — non-negotiable rules. Violating these breaks the build.
-- See [`FEATURES.md`](./FEATURES.md) — the rulebook for editing `features.json` (state machine, WIP=1, verification gating).
-- WIP = 1. Only one feature in `features.json` may be in state `active` at a time. (L07)
-- A feature is **done** only when its `verification` command exits 0. Not "code looks ok". (L09)
-- To verify a feature, run: `bash scripts/validate-feature.sh <id>`.
-- Before declaring victory, run `make check` AND `bash scripts/validate-feature.sh <id>`. Both must pass.
+- See [`FEATURES.md`](./FEATURES.md) — the rulebook for editing `features.json` (state machine, `wip_limit`, verification gating).
+- Respect `wip_limit` in `features.json` (default 1). Don't have more features in state `active` than `wip_limit`. (L07)
+- A feature is **done** only when `bash scripts/validate-feature.sh <id>` exits 0 (auto_verify path) or an ack file exists (description path). Not "code looks ok". (L09)
+- Don't merge to `main` if `make check` fails. (Committing WIP to a feature branch is fine — what's not fine is shipping red builds to the trunk.)
 
 ## Deeper docs (read on demand)
 
@@ -43,14 +42,16 @@ make check     # lint + typecheck + tests + build (the full bar)
 
 ## Session protocol
 
-**At the start of every session:**
+> When this matters: at the end of any **substantive** session — finishing a feature, landing a bigger refactor, taking the project meaningfully forward. For 2-minute fixes (typo, version bump, single-line tweak) just commit and move on; the ceremony below would cost more than the work.
+
+**At the start of every substantive session:**
 
 ```bash
 bash scripts/session-init.sh        # read PROGRESS, sanity-check tooling, briefing
 cat .harness/bootstrap-prompt.txt   # (only on a fresh harness; re-read the bootstrap prompt)
 ```
 
-**At the end of every session:**
+**At the end of every substantive session:**
 
 1. Append a short summary to `PROGRESS.md` under a `## Session <ISO timestamp>` heading. Cover: what was done, what's blocked, what's next.
 2. Run the L12 5-dimension exit-clean check:
@@ -61,7 +62,7 @@ cat .harness/bootstrap-prompt.txt   # (only on a fresh harness; re-read the boot
 
    **Do not consider the session complete until exit-clean passes.**
 
-These are deliberately plain bash scripts and a markdown file edit, not CLI commands. The `harness` CLI is intentionally tiny — it scaffolds (`init` / `inject`) and diagnoses (`doctor` / `clean`). Everything else lives in this repo as text + scripts you can read, grep, and modify.
+These are deliberately plain bash scripts and a markdown file edit, not CLI commands. The `harness` CLI is intentionally tiny — it scaffolds (`init` / `inject`) and diagnoses (`doctor` / `clean` / `view`). Everything else lives in this repo as text + scripts you can read, grep, and modify.
 
 ## When in doubt
 

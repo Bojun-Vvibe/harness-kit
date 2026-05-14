@@ -19,22 +19,23 @@
    并加一行注释说明为什么不适用。
 
 5. 在 CONSTRAINTS.md 里，把示例的 "Code constraints" 和 "Forbidden" 两节
-   换成 5–15 条对 THIS 项目为真的硬约束。从已有测试、lint 配置、CI、错误
-   处理代码、ADR 里推导出来。不适用的示例直接删。
+   换成对 THIS 项目为真的硬约束。从已有测试、lint 配置、CI、错误处理代码、
+   ADR 里推导出来。**没有数量目标**——适用就保留，不适用就删，3 条够用就 3 条。
 
 6. features.json 暂时不要自己加 feature。等用户告诉你要做什么。要加的时候，
    严格按 FEATURES.md 里的规则来——那是编辑 features.json 的契约（状态机、
-   WIP=1、verification 门控、反模式）。先读一遍，再动手。
+   wip_limit、verification + auto_verify、反模式）。先读一遍，再动手。
 
 7. 全部完成后验证并盖章：
    - 跑 `make check` —— 必须 exit 0
-   - 跑 `harness doctor` —— 分数必须 ≥ 24/30
+   - 跑 `harness doctor`，看 `Notes` 部分，修真正会卡住下一个 session 的问题。
+     **分数是参考不是目标**——满分 30/30 不是目的。
    - 在 PROGRESS.md 末尾追加一段 `## Session <ISO 时间戳>`，写清楚做了什么
      （bootstrap：为 <项目名> 填好脚手架）
    - 跑 `bash scripts/exit-clean.sh` —— 必须 exit 0
 
 bootstrap 期间的硬规则：
-- WIP = 1。不要开始写新功能。
+- 遵守 features.json 里的 `wip_limit`（默认 1）。不要开始写新功能。
 - 除了第 1 步列出的脚手架文件之外，不要修改任何文件。
-- 在 `harness doctor` 和 `make check` 都通过之前，不能宣布完成。
+- 在 `harness doctor` 的 Notes 都处理掉、`make check` 通过之前，不能宣布完成。
 - 仓库里实在推导不出来的事情，问用户——不要瞎编。

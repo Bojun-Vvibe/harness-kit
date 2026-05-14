@@ -20,23 +20,26 @@
    타겟은 `@true` 로 두고 한 줄짜리 주석으로 사유를 남기세요.
 
 5. CONSTRAINTS.md 의 예시 「Code constraints」 와 「Forbidden」 섹션을 이
-   프로젝트에 참인 5–15 개의 강제 규칙으로 교체하세요. 기존 테스트, lint 설정,
-   CI, 에러 처리, ADR 에서 도출하세요. 적용되지 않는 예시는 삭제하세요.
+   프로젝트에 참인 강제 규칙으로 교체하세요. 기존 테스트, lint 설정, CI,
+   에러 처리, ADR 에서 도출하세요. **목표 개수는 없습니다** — 적용되는 것은
+   남기고, 안 되는 것은 삭제 (3 개로 충분하면 3 개로 OK).
 
 6. features.json 에 직접 feature 를 아직 추가하지 마세요. 사용자가 무엇을
    만들지 알려줄 때까지 기다리세요. 추가할 때는 FEATURES.md 의 규칙을
-   엄격히 따르세요 — 그 파일이 features.json 편집의 계약(상태 머신, WIP=1,
-   verification 게이트, 안티패턴)입니다. 한 번 읽고 행동하세요.
+   엄격히 따르세요 — 그 파일이 features.json 편집의 계약(상태 머신, wip_limit,
+   verification + auto_verify, 안티패턴)입니다. 한 번 읽고 행동하세요.
 
 7. 모두 끝나면 검증하고 도장 찍기:
    - `make check` 실행 — exit 0 필수
-   - `harness doctor` 실행 — 점수 24/30 이상 필수
+   - `harness doctor` 실행, `Notes` 섹션을 읽고 다음 세션을 실제로 막을
+     문제를 해결. **점수는 참고용이지 목표가 아님** — 30/30 만점이 목적이 아님.
    - PROGRESS.md 끝에 `## Session <ISO 타임스탬프>` 블록을 추가하고 무엇을
      했는지 적기 (bootstrap: <project name> 스캐폴딩 채움)
    - `bash scripts/exit-clean.sh` 실행 — exit 0 필수
 
 부트스트랩 동안의 강제 규칙:
-- WIP = 1. 새 기능 코딩을 시작하지 마세요.
+- features.json 의 `wip_limit`(기본값 1)을 지키세요. 새 기능 코딩을 시작하지 마세요.
 - 1 단계에 나열된 스캐폴딩 파일 외에는 어떤 파일도 수정하지 마세요.
-- `harness doctor` 와 `make check` 가 둘 다 통과하기 전에는 「완료」 선언 금지.
+- `harness doctor` 의 Notes 를 해결하고 `make check` 가 통과하기 전에는
+  「완료」 선언 금지.
 - 저장소만으로 정말 결정 불가인 사항은 사용자에게 물어보세요 — 추측 금지.

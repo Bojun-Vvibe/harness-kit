@@ -22,25 +22,30 @@ Sua tarefa é tornar este harness real para ESTE projeto.
    explicando por quê.
 
 5. Em CONSTRAINTS.md, substitua as seções de exemplo "Code constraints" e
-   "Forbidden" por 5–15 regras duras VERDADEIRAS para este projeto. Derive-as de
-   testes existentes, configs de lint, CI, manipuladores de erro e ADRs. Apague
-   exemplos que não se aplicam.
+   "Forbidden" por regras duras VERDADEIRAS para este projeto. Derive-as de
+   testes existentes, configs de lint, CI, manipuladores de erro e ADRs.
+   **Sem número alvo** — mantenha o que se aplica, apague o resto
+   (3 regras se 3 bastarem, OK).
 
 6. Em features.json, NÃO adicione features você mesmo ainda. Espere o humano
    dizer o que construir. Quando ele disser, siga as regras de FEATURES.md
    para adicionar a entrada — esse arquivo é o contrato para editar
-   features.json (máquina de estados, WIP=1, verificação obrigatória,
+   features.json (máquina de estados, wip_limit, verification + auto_verify,
    anti-padrões). Leia uma vez, depois aja.
 
 7. Quando terminar, verifique e carimbe:
    - rode `make check` — deve sair 0
-   - rode `harness doctor` — a nota deve ser pelo menos 24/30
+   - rode `harness doctor`, leia a seção `Notes` e resolva o que realmente
+     bloquearia a próxima sessão. **A pontuação é uma guia, não um alvo** —
+     30/30 perfeito não é a meta.
    - adicione um bloco `## Session <timestamp ISO>` ao final de PROGRESS.md
      descrevendo o que fez (bootstrap: andaime preenchido para <project name>)
    - rode `bash scripts/exit-clean.sh` — deve sair 0
 
 Regras duras durante este bootstrap:
-- WIP = 1. Não comece a codar features novas.
+- Respeite `wip_limit` em features.json (padrão 1). Não comece a codar
+  features novas.
 - Não modifique nenhum arquivo fora do andaime listado no passo 1.
-- Não declare "pronto" até `harness doctor` e `make check` ambos passarem.
+- Não declare "pronto" até as Notes de `harness doctor` serem resolvidas e
+  `make check` passar.
 - Se algo é genuinamente indecidível pelo repo, pergunte ao humano — não invente.

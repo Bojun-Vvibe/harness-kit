@@ -4,11 +4,11 @@ Non-negotiable rules. Violating these breaks the build or fails review.
 
 ## Process constraints
 
-- WIP = 1. At most one `features.json` item may be in state `active`. (L07)
-- Every feature must have a `verification` command. No verification, no `done`. (L08)
-- A feature only enters `passing` after its `verification` command exits 0 — verified via `bash scripts/validate-feature.sh <id>`. Not by visual inspection. (L09)
-- Do not commit if `make check` fails locally. (L02)
-- Do not refactor unrelated code while a feature is `active`. Finish, then refactor. (L09)
+- Respect `wip_limit` in `features.json` (default `1`). At most that many `features.json` items may be in state `active`. (L07)
+- Every feature must have a `verification` description. No verification, no `done`. (L08)
+- A feature only enters `passing` after `bash scripts/validate-feature.sh <id>` exits 0 — either via its `auto_verify` invocation or via a human-run `--ack`. Not by visual inspection. (L09)
+- Don't merge to `main` if `make check` fails. (Local commits to feature branches are fine — half-finished WIP is a useful checkpoint.)
+- Don't refactor unrelated code while a feature is `active`. Finish, then refactor. (L09)
 - See [`FEATURES.md`](./FEATURES.md) for the full state machine and anti-patterns when editing `features.json`.
 
 ## Code constraints (TypeScript / harness-kit specifics)

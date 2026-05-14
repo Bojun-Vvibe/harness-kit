@@ -21,25 +21,30 @@ Tu trabajo es hacer este harness real para ESTE proyecto.
    no aplica, déjalo como `@true` con un comentario de una línea explicando por qué.
 
 5. En CONSTRAINTS.md, reemplaza las secciones de ejemplo "Code constraints" y
-   "Forbidden" por 5–15 reglas duras VERDADERAS para este proyecto. Derívalas de
-   tests existentes, configs de lint, CI, manejadores de error y ADRs. Borra los
-   ejemplos que no apliquen.
+   "Forbidden" por reglas duras VERDADERAS para este proyecto. Derívalas de
+   tests existentes, configs de lint, CI, manejadores de error y ADRs.
+   **Sin número objetivo** — conserva lo que aplique, borra lo que no
+   (3 reglas si 3 bastan, OK).
 
 6. En features.json, NO añadas features tú mismo todavía. Espera a que el humano
    te diga qué construir. Cuando lo haga, sigue las reglas de FEATURES.md para
    añadir la entrada — ese archivo es el contrato para editar features.json
-   (máquina de estados, WIP=1, verificación obligatoria, anti-patrones). Léelo
-   una vez, luego actúa.
+   (máquina de estados, wip_limit, verification + auto_verify, anti-patrones).
+   Léelo una vez, luego actúa.
 
 7. Cuando termines, verifica y sella:
    - ejecuta `make check` — debe salir 0
-   - ejecuta `harness doctor` — la nota debe ser al menos 24/30
+   - ejecuta `harness doctor`, lee la sección `Notes` y resuelve lo que
+     genuinamente bloquearía la próxima sesión. **El puntaje es una guía, no
+     un objetivo** — un 30/30 perfecto no es la meta.
    - añade un bloque `## Session <timestamp ISO>` al final de PROGRESS.md
      describiendo lo que hiciste (bootstrap: andamiaje rellenado para <project name>)
    - ejecuta `bash scripts/exit-clean.sh` — debe salir 0
 
 Reglas duras durante este bootstrap:
-- WIP = 1. No empieces a programar nuevas features.
+- Respeta `wip_limit` en features.json (por defecto 1). No empieces a programar
+  nuevas features.
 - No modifiques ningún archivo fuera del andamiaje listado en el paso 1.
-- No declares "hecho" hasta que `harness doctor` y `make check` ambos pasen.
+- No declares "hecho" hasta que las Notes de `harness doctor` estén atendidas
+  y `make check` pase.
 - Si algo es genuinamente indecidible desde el repo, pregunta al humano — no inventes.

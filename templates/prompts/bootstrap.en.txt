@@ -21,25 +21,29 @@ Your job is to make the harness real for THIS project.
    not apply, leave it as `@true` with a one-line comment explaining why.
 
 5. In CONSTRAINTS.md, replace the example "Code constraints" and "Forbidden"
-   sections with 5–15 hard rules that are TRUE for this project. Derive them
-   from existing tests, lint configs, CI, error handlers, and ADRs. Drop
-   examples that don't apply.
+   sections with the hard rules that are TRUE for this project. Derive them
+   from existing tests, lint configs, CI, error handlers, and ADRs. There's no
+   target count — keep what applies, drop what doesn't.
 
 6. In features.json, do NOT add features yourself yet. Wait for the human to tell
    you what to build. When they do, follow the rules in FEATURES.md to add
    the entry — that file is the contract for editing features.json (state
-   machine, WIP=1, verification gating, anti-patterns). Read it once, then
-   act.
+   machine, wip_limit, verification + auto_verify, anti-patterns). Read it
+   once, then act.
 
 7. When done, verify and stamp:
    - run `make check` — must exit 0
-   - run `harness doctor` — score must be at least 24/30
+   - run `harness doctor` — read its `Notes` section and address anything that
+     genuinely blocks the agent's next session. The score is a guide, not a
+     target — perfect 30/30 is not the goal.
    - append a `## Session <ISO timestamp>` block to PROGRESS.md describing what
      you did (bootstrap: filled scaffolding for <project name>)
    - run `bash scripts/exit-clean.sh` — must exit 0
 
 Hard rules during this bootstrap:
-- WIP = 1. Do not start coding new features.
+- Respect `wip_limit` in features.json (default 1). Don't start coding new
+  features.
 - Do not modify any file outside the harness scaffolding listed in step 1.
-- Do not declare done until `harness doctor` and `make check` both pass.
+- Do not declare done until `harness doctor` Notes are addressed and `make
+  check` passes.
 - If something is genuinely undecidable from the repo, ask the human — don't invent.

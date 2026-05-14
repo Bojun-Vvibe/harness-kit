@@ -22,26 +22,31 @@ Ta mission est de rendre ce harnais réel pour CE projet.
    pourquoi.
 
 5. Dans CONSTRAINTS.md, remplace les sections d'exemple « Code constraints » et
-   « Forbidden » par 5–15 règles dures VRAIES pour ce projet. Dérive-les des
-   tests existants, configs lint, CI, gestionnaires d'erreur et ADRs. Supprime
-   les exemples qui ne s'appliquent pas.
+   « Forbidden » par les règles dures VRAIES pour ce projet. Dérive-les des
+   tests existants, configs lint, CI, gestionnaires d'erreur et ADRs.
+   **Pas de nombre cible** — garde ce qui s'applique, supprime le reste
+   (3 règles si 3 suffisent, c'est OK).
 
 6. Dans features.json, n'ajoute PAS encore de features toi-même. Attends que
    l'humain te dise quoi construire. Quand il le dira, suis strictement les
    règles de FEATURES.md pour ajouter l'entrée — ce fichier est le contrat
-   pour éditer features.json (machine d'état, WIP=1, vérification obligatoire,
-   anti-patterns). Lis-le une fois, puis agis.
+   pour éditer features.json (machine d'état, wip_limit, verification +
+   auto_verify, anti-patterns). Lis-le une fois, puis agis.
 
 7. Une fois fini, vérifie et tamponne :
    - lance `make check` — doit sortir 0
-   - lance `harness doctor` — la note doit être au moins 24/30
+   - lance `harness doctor`, lis la section `Notes` et résous ce qui
+     bloquerait réellement la prochaine session. **Le score est un guide, pas
+     une cible** — un 30/30 parfait n'est pas l'objectif.
    - ajoute un bloc `## Session <timestamp ISO>` à la fin de PROGRESS.md
      décrivant ce que tu as fait (bootstrap : échafaudage rempli pour <project name>)
    - lance `bash scripts/exit-clean.sh` — doit sortir 0
 
 Règles dures pendant ce bootstrap :
-- WIP = 1. Ne commence pas à coder de nouvelles features.
+- Respecte `wip_limit` dans features.json (défaut 1). Ne commence pas à coder
+  de nouvelles features.
 - Ne modifie aucun fichier en dehors de l'échafaudage listé à l'étape 1.
-- Ne déclare pas « terminé » avant que `harness doctor` ET `make check` passent.
+- Ne déclare pas « terminé » avant que les Notes de `harness doctor` soient
+  résolues et que `make check` passe.
 - Si quelque chose est vraiment indécidable depuis le dépôt, demande à l'humain
   — n'invente pas.

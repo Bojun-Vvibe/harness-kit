@@ -538,8 +538,14 @@
           return;
         }
         const rows = d.features.items
-          .map(
-            (f) =>
+          .map((f) => {
+            const verifyLabel = f.auto_verify
+              ? '<span class="badge state passing" title="auto_verify is set">auto</span>'
+              : '<span class="badge state active" title="manual ack required">manual</span>';
+            const verifyCell = f.auto_verify
+              ? "<code>" + escapeHtml(f.auto_verify) + "</code><br><span class=meta>" + escapeHtml(f.verification.slice(0, 120)) + (f.verification.length > 120 ? "…" : "") + "</span>"
+              : "<span class=meta>" + escapeHtml(f.verification.slice(0, 200)) + (f.verification.length > 200 ? "…" : "") + "</span>";
+            return (
               "<tr>" +
               "<td><strong>" +
               escapeHtml(f.id) +
@@ -552,17 +558,17 @@
               '">' +
               f.state +
               "</span></td>" +
-              '<td><code>' +
-              escapeHtml(f.verification || "") +
-              "</code></td>" +
+              "<td>" + verifyLabel + "</td>" +
+              "<td>" + verifyCell + "</td>" +
               "<td>" +
               (f.evidence ? escapeHtml(f.evidence) : "<span class=meta>—</span>") +
               "</td>" +
-              "</tr>",
-          )
+              "</tr>"
+            );
+          })
           .join("");
         root.innerHTML =
-          "<table><thead><tr><th>id</th><th>behavior</th><th>state</th><th>verification</th><th>evidence</th></tr></thead><tbody>" +
+          "<table><thead><tr><th>id</th><th>behavior</th><th>state</th><th>form</th><th>verification</th><th>evidence</th></tr></thead><tbody>" +
           rows +
           "</tbody></table>";
       }

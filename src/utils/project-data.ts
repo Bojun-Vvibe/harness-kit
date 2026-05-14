@@ -43,6 +43,7 @@ export interface FeatureItem {
   id: string;
   behavior: string;
   verification: string;
+  auto_verify?: string;
   state: string;
   evidence?: string;
   blocked_reason?: string;
@@ -454,7 +455,10 @@ async function collectFeatures(cwd: string): Promise<FeaturesView> {
     total: f.features.length,
     by_state,
     wip_violation: activeCount > (f.wip_limit ?? 1),
-    items: f.features,
+    items: f.features.map((it) => ({
+      ...it,
+      auto_verify: it.auto_verify ?? undefined,
+    })),
   };
 }
 

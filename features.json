@@ -5,11 +5,22 @@
     {
       "id": "F01",
       "behavior": "User can run `harness view` to open a localhost web dashboard that visualizes the current project's harness scaffold, organized into 5 subsystems (指令 Instructions / 工具 Tools / 环境 Environment / 状态 State / 反馈 Feedback). Auto-opens the browser; supports --no-open and --port.",
-      "verification": "npm test",
+      "verification": "After `harness init` (or `inject`) on any project, running `harness view` starts a localhost server, opens a browser pointing at it (unless --no-open), and the page renders 5 subsystem cards in the canonical order with files, status dots, and a features.json table. The 4 e2e tests in tests/view.test.ts cover server boot, /api/project schema, /api/file (with path-traversal rejected), and HTML structure.",
+      "auto_verify": "npm test",
       "state": "passing",
       "evidence": "commit 3acb62b + tests/view.test.ts (4/4 passing) + manual smoke on dogfood install (curl /api/project returns all 5 subsystems with files counts 11/6/5/3/6)",
       "created_at": "2026-05-14T01:53:28Z",
       "updated_at": "2026-05-14T01:59:51Z"
+    },
+    {
+      "id": "F02",
+      "behavior": "Verification model is two-field. `verification` is always a human-readable description; `auto_verify` is an optional invocation that mechanically checks it (any tool bash can launch — curl, playwright, python, your own CLI). Description-only features require a human-run `bash scripts/validate-feature.sh <id> --ack` which writes `.harness/feature-acks/<id>.txt`. Agents cannot self-ack. Plus: 8 other rigid rules (WIP=1 wording, hardcoded score bar, 24h freshness fail, no-commit-on-fail, session ceremony for trivial work, never-reset state, '5–15 rules' count, TODO format) softened or removed without losing the L09 / L07 protections.",
+      "verification": "FEATURES.md describes both fields with examples and updates the state machine + hard rules. validate-feature.sh dispatches: if auto_verify is set → run via `bash -c`, exit code decides; otherwise → print description, require --ack which writes a timestamped + sha + email record. The agent cannot mark passing without either an auto_verify exit-0 run or an ack file on disk. tests/validate-feature.test.ts has 8 tests covering both branches and error cases. The 8 other rigidity fixes are reflected in templates (FEATURES.md, AGENTS.md, CONSTRAINTS.md, exit-clean.sh) and all 8 bootstrap prompts (en/zh/ja/ko/es/pt/fr/de). The view dashboard shows an 'auto / manual' badge per feature.",
+      "auto_verify": "npm test",
+      "state": "passing",
+      "evidence": "commit 1430c60 + tests/validate-feature.test.ts (8/8 passing, total 45/45) + bash scripts/validate-feature.sh F02 exits 0 cleanly",
+      "created_at": "2026-05-14T02:12:12Z",
+      "updated_at": "2026-05-14T02:24:31Z"
     }
   ]
 }

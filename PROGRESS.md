@@ -5,11 +5,11 @@
 
 ## Current state
 
-- **Last commit**: `3acb62b` (will be superseded by v0.3.0 commit)
+- **Last commit**: `1430c60` (will be superseded by v0.3.1 commit)
 - **Branch**: `main`
-- **Build**: passing — `dist/cli.cjs` 54.70 KB
-- **Tests**: 37/37 passing (lang 8, utils 8, view 4, init 17)
-- **Active feature**: (none) — F01 just transitioned `active → passing`
+- **Build**: passing — `dist/cli.cjs` 54.78 KB
+- **Tests**: 45/45 passing (lang 8, utils 8, view 4, init 17, validate-feature 8)
+- **Active feature**: (none) — F02 transitioned `active → passing` this session
 
 ## Open blockers
 
@@ -17,11 +17,76 @@
 
 ## Next steps (priority order)
 
-1. Decide whether to publish to npm (v0.3.0 is the first release with a real "killer feature" beyond scaffolding — the dashboard).
-2. Optional polish: live-reload the dashboard via SSE so file edits show without manual refresh.
-3. Optional: GitHub Pages screenshot of the dashboard for the README.
+1. Decide whether to publish v0.3.x to npm (audit pass + dashboard make this a strong public release).
+2. Optional: `harness view` live-reload via SSE so file edits show without manual refresh.
+3. Optional: README screenshot of the dashboard for hero image.
 
 ---
+
+## Session 2026-05-14 — F02 done: rigidity audit + verification model rework (v0.3.1)
+
+User feedback:
+> "verification 不是必须是一行命令，也可能是一段 UI 行为的描述"
+> "shell 只是可执行的一种，不要强绑定"
+> "再走查一下有没有其他类似的问题需要优化"
+
+Treated as one F02 with three deliverables: (a) split verification into
+description + optional auto_verify, (b) decouple from shell as the
+universal launcher (any tool), (c) audit framework for similar rigid
+rules and soften them.
+
+### (a) Verification model
+
+- `verification` (required, always a description) + `auto_verify`
+  (optional, any invocation bash can launch).
+- `validate-feature.sh` rewritten: dispatches on auto_verify presence;
+  description-only path requires human-run `--ack` which writes
+  `.harness/feature-acks/<id>.txt` with timestamp + sha + email.
+- Agents cannot self-ack — preserves L09 while supporting UI/visual/
+  manual workflows.
+
+### (b) Shell as launcher, not constraint
+
+- Removed all "looks shell-y" detection.
+- auto_verify can be `npm test`, `curl http://... | jq -e ...`,
+  `playwright test settings/dark-mode`, `python tools/check.py F03`,
+  any custom CLI from any ecosystem. Bash just launches it.
+- Dropped the magical `$ ` prefix convention from the previous draft.
+
+### (c) Audited 9 rigid rules; fixed all
+
+| # | Rule | Fix |
+|---|---|---|
+| 1 | "WIP=1" hardcoded | "respect wip_limit (default 1, configurable)" |
+| 2 | "doctor ≥ 24/30" hardcoded bar | dropped; "read Notes, fix what blocks the next session" |
+| 3 | exit-clean fails on PROGRESS > 24h | warns at 24h, fails at HARNESS_PROGRESS_MAX_AGE_HOURS (default 168 = 7d) |
+| 4 | "no commit if make check fails" | "no merge to main if make check fails" |
+| 5 | session protocol on every session | exemption for trivial work (typo / version bump) |
+| 6 | state machine "any → not_started: NEVER" | allowed when redefining feature, requires PROGRESS.md note |
+| 7 | "5–15 hard rules" in CONSTRAINTS.md | dropped count target |
+| 8 | TODO format `TODO(@owner, YYYY-MM-DD)` mandatory | moved to "Suggested" with team-call note |
+| 9 | dashboard didn't show auto/manual form | features table now has `form` column with auto/manual badge |
+
+### Files touched
+
+- templates/state/FEATURES.md.tpl (rules 1, 2, 6 + new schema)
+- templates/instructions/AGENTS.md.tpl (rules 1, 4, 5)
+- templates/instructions/CONSTRAINTS.md.tpl (rules 4, 7, 8 — full rewrite)
+- templates/feedback/scripts/exit-clean.sh.tpl (rule 3)
+- templates/feedback/scripts/validate-feature.sh.tpl (verification rework)
+- templates/prompts/bootstrap.{en,zh,ja,ko,es,pt,fr,de}.txt (rules 1, 2, 7)
+- src/utils/project-data.ts + templates/web/index.html (rule 9: dashboard badge)
+- harness-kit's own AGENTS.md / CONSTRAINTS.md / FEATURES.md / scripts/* re-synced from updated templates
+- features.json (F01 + F02 entries with new schema, F02 marked passing)
+- tests/validate-feature.test.ts (new file, 8 tests covering both branches)
+
+### Verification
+
+- `npm test` → 45/45 ✓ (was 37/37 — added 8 tests for validate-feature.sh)
+- `bash scripts/validate-feature.sh F02` → exits 0, prints
+  "F02 auto-verified" ✓
+- `bash scripts/exit-clean.sh` → 5/5 dimensions green ✓
+- F02 marked `passing` with evidence pointing at this commit + tests.
 
 ## Session 2026-05-14 — F01 done: `harness view` dashboard + doctor refactor (v0.3.0)
 
