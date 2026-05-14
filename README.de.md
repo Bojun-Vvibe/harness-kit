@@ -70,6 +70,32 @@ Wenn du `npx` benutzt hast und beim Ausführen von `harness doctor` die Meldung 
 npm install -g @bojunchai/harness-kit
 ```
 
+### Troubleshooting: `EEXIST: file already exists` auf `/bin/harness`
+
+Die CLI registriert eine Binary namens `harness`. Zwei bekannte Fälle, in denen ein anderes Paket diesen Namen bereits belegt:
+
+1. Du hast `npm install -g .` aus einem lokalen Klon des Repos ausgeführt (Early-Contributor-Fall). Lösung:
+
+   ```bash
+   npm uninstall -g harness-kit
+   npm install -g @bojunchai/harness-kit
+   ```
+
+2. Du hast [`harness-cli`](https://www.npmjs.com/package/harness-cli) installiert (deklariert ebenfalls `bin: harness`). Drei Optionen:
+
+   ```bash
+   # A — Konfliktpaket deinstallieren:
+   npm uninstall -g harness-cli
+   npm install -g @bojunchai/harness-kit
+
+   # B — Beide behalten, dieses Kit nutzt den Alias harness-kit (auch in package.json bin registriert):
+   npm install -g @bojunchai/harness-kit
+   harness-kit init
+
+   # C — Überschreiben erzwingen:
+   npm install -g @bojunchai/harness-kit --force
+   ```
+
 ---
 
 ## Nach init: übergib es deinem Agenten

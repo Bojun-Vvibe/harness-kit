@@ -68,6 +68,32 @@ npx @bojunchai/harness-kit inject --apply
 npm install -g @bojunchai/harness-kit
 ```
 
+### 排错：`EEXIST: file already exists` 在 `/bin/harness`
+
+CLI 注册了一个叫 `harness` 的二进制。已知两种已被其他包占用的情况：
+
+1. 你之前从本地 clone 跑过 `npm install -g .`（早期贡献者）。修：
+
+   ```bash
+   npm uninstall -g harness-kit
+   npm install -g @bojunchai/harness-kit
+   ```
+
+2. 你装过无关的 [`harness-cli`](https://www.npmjs.com/package/harness-cli)（也声明 `bin: harness`）。三选一：
+
+   ```bash
+   # A 卸了那个再装：
+   npm uninstall -g harness-cli
+   npm install -g @bojunchai/harness-kit
+
+   # B 保留两个，本 kit 用 harness-kit 这个别名（package.json bin 里也注册了）：
+   npm install -g @bojunchai/harness-kit
+   harness-kit init
+
+   # C 强行覆盖：
+   npm install -g @bojunchai/harness-kit --force
+   ```
+
 ---
 
 ## init 完之后：把这段 prompt 丢给你的 agent

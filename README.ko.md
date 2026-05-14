@@ -70,6 +70,32 @@ npx @bojunchai/harness-kit inject --apply
 npm install -g @bojunchai/harness-kit
 ```
 
+### 트러블슈팅: `/bin/harness` 에서 `EEXIST: file already exists`
+
+CLI 는 `harness` 라는 이름의 바이너리를 등록합니다. 같은 이름을 다른 패키지가 이미 차지하고 있는 알려진 두 가지 케이스:
+
+1. 이전에 로컬 clone 에서 `npm install -g .` 을 실행한 적 있음 (초기 기여자). 수정:
+
+   ```bash
+   npm uninstall -g harness-kit
+   npm install -g @bojunchai/harness-kit
+   ```
+
+2. 무관한 [`harness-cli`](https://www.npmjs.com/package/harness-cli) 가 설치되어 있음 (역시 `bin: harness` 선언). 3 가지 중 택일:
+
+   ```bash
+   # A 충돌 패키지 제거 후 설치:
+   npm uninstall -g harness-cli
+   npm install -g @bojunchai/harness-kit
+
+   # B 둘 다 유지, 이 킷은 harness-kit 별칭 사용 (package.json bin 에도 등록됨):
+   npm install -g @bojunchai/harness-kit
+   harness-kit init
+
+   # C 강제 덮어쓰기:
+   npm install -g @bojunchai/harness-kit --force
+   ```
+
 ---
 
 ## init 후: 에이전트에게 넘길 프롬프트

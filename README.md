@@ -80,6 +80,36 @@ If you used `npx` and now see "command not found: harness" when running
 npm install -g @bojunchai/harness-kit
 ```
 
+### Troubleshooting: `EEXIST: file already exists` on `/bin/harness`
+
+The CLI registers a binary called `harness`. Two known cases where another
+package may already own that name on your system:
+
+1. You previously did `npm install -g .` from a local clone of this repo
+   (early-adopter case). Fix:
+
+   ```bash
+   npm uninstall -g harness-kit
+   npm install -g @bojunchai/harness-kit
+   ```
+
+2. You have the unrelated [`harness-cli`](https://www.npmjs.com/package/harness-cli)
+   installed (also exposes `bin: harness`). Either uninstall it, install
+   side-by-side under the alias `harness-kit`, or use `--force`:
+
+   ```bash
+   # Option A — uninstall the conflicting package, then install:
+   npm uninstall -g harness-cli
+   npm install -g @bojunchai/harness-kit
+
+   # Option B — keep both, use the harness-kit alias instead:
+   npm install -g @bojunchai/harness-kit
+   harness-kit init       # this kit ships both `harness` and `harness-kit` binaries
+
+   # Option C — overwrite recklessly:
+   npm install -g @bojunchai/harness-kit --force
+   ```
+
 ---
 
 ## After init: hand it to your agent
