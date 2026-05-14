@@ -3,7 +3,16 @@
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "ignoreUnknown": true,
-    "ignore": ["dist", "node_modules", "templates", "stacks", "tests/fixtures"]
+    "ignore": [
+      "dist",
+      "node_modules",
+      "templates",
+      "stacks",
+      "tests/fixtures",
+      ".harnessrc.json",
+      ".harness/**",
+      "features.json"
+    ]
   },
   "formatter": {
     "enabled": true,
