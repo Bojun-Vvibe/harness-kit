@@ -25,7 +25,9 @@ async function getVersion(): Promise<string> {
       try {
         const txt = readFileSync(join(dir, "package.json"), "utf8");
         const obj = JSON.parse(txt);
-        if (obj?.name === "harness-kit") return obj.version as string;
+        if (obj?.name === "@bojunchai/harness-kit" || obj?.name === "harness-kit") {
+          return obj.version as string;
+        }
       } catch {
         /* not here */
       }
@@ -98,12 +100,17 @@ async function main(): Promise<void> {
       "view [dir]",
       "Open a localhost dashboard showing the project's harness scaffold (5 subsystems)",
     )
-    .option("-p, --port <port>", "Port to listen on (default 3737)", { default: 3737 })
+    .option("-p, --port <port>", "Port to listen on (default 3737; use 0 for ephemeral)", {
+      default: 3737,
+    })
     .option("--no-open", "Do not auto-open the browser")
     .action(async (dir: string | undefined, opts) => {
+      // Use a nullish/explicit check, not truthiness — `--port 0` (ephemeral)
+      // would otherwise be silently coerced to 3737.
+      const port = opts.port === undefined || opts.port === null ? 3737 : Number(opts.port);
       await runView({
         cwd: resolve(dir ?? "."),
-        port: Number(opts.port) || 3737,
+        port: Number.isFinite(port) ? port : 3737,
         open: opts.open !== false,
       });
     });
