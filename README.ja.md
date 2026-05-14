@@ -3,7 +3,7 @@
 > AI コーディングエージェント向けの実用的なハーネス・スキャフォールディングキット。
 > 「指示・状態・フィードバック・観測性・ガバナンス」の 5 サブシステムを備えた完全なハーネスを、新規／既存のあらゆるリポジトリにワンコマンドで導入できます。スタック非依存。
 
-[![npm version](https://img.shields.io/npm/v/harness-kit.svg)](https://www.npmjs.com/package/harness-kit)
+[![npm version](https://img.shields.io/npm/v/@bojunchai/harness-kit.svg)](https://www.npmjs.com/package/@bojunchai/harness-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > [English](./README.md) · [简体中文](./README.zh.md) · **日本語** · [한국어](./README.ko.md) · [Español](./README.es.md) · [Português](./README.pt.md) · [Français](./README.fr.md) · [Deutsch](./README.de.md)
@@ -49,22 +49,25 @@
 
 ```bash
 # 推奨：一度グローバルインストール ──────────────────────────────────────
-npm install -g harness-kit
+npm install -g @bojunchai/harness-kit
 harness init                 # 新規プロジェクト（対話モード）
 harness inject               # 既存プロジェクト（既定はドライラン）
+harness view                 # プロジェクト harness を可視化する localhost dashboard
 
 # あるいはゼロインストールで npx ─────────────────────────────────────
 # 注意：npx はその一回の呼び出しの中でだけ `harness` を露出します。
-# 生成される PROGRESS.md / Makefile / scripts はすべて `harness ...`
-# を呼び出すため、結局はグローバルインストールが欲しくなります。
-npx harness-kit init
-npx harness-kit inject --apply
+# 生成される Makefile / scripts はすべて `harness doctor` を呼び出すため、
+# 結局はグローバルインストールが欲しくなります。
+npx @bojunchai/harness-kit init
+npx @bojunchai/harness-kit inject --apply
 ```
+
+> なぜ `@bojunchai/` スコープ？スコープなしの `harness-kit` は npm 上で無関係の squat パッケージに取られています。CLI バイナリは `harness` のまま — `npm install` / `npx` のときだけスコープを書きます。
 
 `npx` を使った後で `harness doctor` を実行して「command not found: harness」と出る場合は、グローバルにインストールしてください：
 
 ```bash
-npm install -g harness-kit
+npm install -g @bojunchai/harness-kit
 ```
 
 ---

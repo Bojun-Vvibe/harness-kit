@@ -3,7 +3,7 @@
 > AI 코딩 에이전트용 실용적인 하니스 스캐폴딩 킷.
 > 5 개 서브시스템(지시 / 상태 / 피드백 / 관측성 / 거버넌스)을 모두 갖춘 완전한 하니스를 새 프로젝트나 기존 프로젝트에 한 번의 명령으로 주입하세요. 스택 무관.
 
-[![npm version](https://img.shields.io/npm/v/harness-kit.svg)](https://www.npmjs.com/package/harness-kit)
+[![npm version](https://img.shields.io/npm/v/@bojunchai/harness-kit.svg)](https://www.npmjs.com/package/@bojunchai/harness-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > [English](./README.md) · [简体中文](./README.zh.md) · [日本語](./README.ja.md) · **한국어** · [Español](./README.es.md) · [Português](./README.pt.md) · [Français](./README.fr.md) · [Deutsch](./README.de.md)
@@ -49,22 +49,25 @@
 
 ```bash
 # 권장: 한 번 글로벌 설치 ────────────────────────────────────────
-npm install -g harness-kit
+npm install -g @bojunchai/harness-kit
 harness init                 # 새 프로젝트 (대화형)
 harness inject               # 기존 프로젝트 (기본 dry-run)
+harness view                 # 프로젝트 harness 를 보여주는 localhost dashboard
 
 # 또는 설치 없이 npx ───────────────────────────────────────────
 # 주의: npx 는 그 한 번의 호출에서만 `harness` 를 노출합니다.
-# 생성된 PROGRESS.md / Makefile / scripts 가 모두 `harness ...` 를
-# 호출하므로, 결국 글로벌 설치가 필요해질 것입니다.
-npx harness-kit init
-npx harness-kit inject --apply
+# 생성된 Makefile / scripts 가 모두 `harness doctor` 를 호출하므로,
+# 결국 글로벌 설치가 필요해질 것입니다.
+npx @bojunchai/harness-kit init
+npx @bojunchai/harness-kit inject --apply
 ```
+
+> 왜 `@bojunchai/` 스코프? 스코프 없는 `harness-kit` 은 npm 에서 무관한 squat 패키지가 점유하고 있습니다. CLI 바이너리는 그대로 `harness` — `npm install` / `npx` 시에만 스코프를 씁니다.
 
 `npx` 로 실행한 뒤 `harness doctor` 에서 "command not found: harness" 가 나오면 글로벌 설치하세요:
 
 ```bash
-npm install -g harness-kit
+npm install -g @bojunchai/harness-kit
 ```
 
 ---

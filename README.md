@@ -3,7 +3,7 @@
 > A pragmatic scaffolding kit for AI-coding-agent harnesses.
 > Drop a complete 5-subsystem harness — instructions, state, feedback, observability, governance — into any new or existing repo. Stack-agnostic.
 
-[![npm version](https://img.shields.io/npm/v/harness-kit.svg)](https://www.npmjs.com/package/harness-kit)
+[![npm version](https://img.shields.io/npm/v/@bojunchai/harness-kit.svg)](https://www.npmjs.com/package/@bojunchai/harness-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **English** · [简体中文](./README.zh.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Español](./README.es.md) · [Português](./README.pt.md) · [Français](./README.fr.md) · [Deutsch](./README.de.md)
@@ -56,23 +56,28 @@ The kit ships a `harness` CLI. The generated `Makefile` and `scripts/` call
 
 ```bash
 # Install once globally (recommended) ──────────────────────────────────
-npm install -g harness-kit
+npm install -g @bojunchai/harness-kit
 harness init                 # new project (interactive)
 harness inject               # existing project (dry-run by default)
+harness view                 # localhost dashboard for the project's harness
 
 # Or zero-install via npx ───────────────────────────────────────────────
 # Note: npx exposes `harness` only inside that single call. The
-# generated PROGRESS.md / Makefile / scripts call `harness ...`, so
-# you'll still want the global install eventually.
-npx harness-kit init
-npx harness-kit inject --apply
+# generated Makefile / scripts call `harness doctor`, so you'll still
+# want the global install eventually.
+npx @bojunchai/harness-kit init
+npx @bojunchai/harness-kit inject --apply
 ```
+
+> Why the `@bojunchai/` scope? The unscoped name `harness-kit` is taken on
+> npm by an unrelated package. The CLI binary is just `harness` — only
+> `npm install` / `npx` mention the scope.
 
 If you used `npx` and now see "command not found: harness" when running
 `harness doctor`, install globally:
 
 ```bash
-npm install -g harness-kit
+npm install -g @bojunchai/harness-kit
 ```
 
 ---

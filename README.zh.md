@@ -2,7 +2,7 @@
 
 > 一个面向 AI 编码 agent 的工程脚手架。一条命令，给任何新老项目装上完整的「指令 / 状态 / 反馈 / 可观测 / 治理」五子系统 harness。技术栈无关。
 
-[![npm version](https://img.shields.io/npm/v/harness-kit.svg)](https://www.npmjs.com/package/harness-kit)
+[![npm version](https://img.shields.io/npm/v/@bojunchai/harness-kit.svg)](https://www.npmjs.com/package/@bojunchai/harness-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > [English](./README.md) · **简体中文** · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Español](./README.es.md) · [Português](./README.pt.md) · [Français](./README.fr.md) · [Deutsch](./README.de.md)
@@ -47,22 +47,25 @@
 
 ```bash
 # 推荐：全局装一次 ────────────────────────────────────────────────
-npm install -g harness-kit
+npm install -g @bojunchai/harness-kit
 harness init                 # 新项目（交互式）
 harness inject               # 老项目（默认 dry-run）
+harness view                 # 启 localhost dashboard 看项目 harness
 
 # 或者零安装用 npx ───────────────────────────────────────────────
 # 注意：npx 只在那一次调用里暴露 `harness` 命令。
 # 生成的 Makefile / scripts 都引用 `harness doctor`，
 # 所以你最终还是会想全局装一次。
-npx harness-kit init
-npx harness-kit inject --apply
+npx @bojunchai/harness-kit init
+npx @bojunchai/harness-kit inject --apply
 ```
+
+> 为什么是 `@bojunchai/` scope？因为 `harness-kit` 这个无 scope 名被一个无关 squat 包占了。CLI 命令名仍然是 `harness`——只有 `npm install` / `npx` 时要写 scope。
 
 如果你用了 `npx`，然后跑 `harness doctor` 报 "command not found: harness"，全局装一次就好：
 
 ```bash
-npm install -g harness-kit
+npm install -g @bojunchai/harness-kit
 ```
 
 ---

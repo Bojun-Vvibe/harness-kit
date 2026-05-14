@@ -3,7 +3,7 @@
 > Un kit de andamiaje pragmático para harnesses de agentes-de-código IA.
 > Despliega un harness completo de 5 subsistemas — instrucciones, estado, retroalimentación, observabilidad, gobernanza — en cualquier repo nuevo o existente. Independiente del stack.
 
-[![npm version](https://img.shields.io/npm/v/harness-kit.svg)](https://www.npmjs.com/package/harness-kit)
+[![npm version](https://img.shields.io/npm/v/@bojunchai/harness-kit.svg)](https://www.npmjs.com/package/@bojunchai/harness-kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > [English](./README.md) · [简体中文](./README.zh.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · **Español** · [Português](./README.pt.md) · [Français](./README.fr.md) · [Deutsch](./README.de.md)
@@ -49,22 +49,25 @@ El kit incluye un CLI llamado `harness`. El `Makefile` y los `scripts/` generado
 
 ```bash
 # Recomendado: instala una vez globalmente ─────────────────────────────
-npm install -g harness-kit
+npm install -g @bojunchai/harness-kit
 harness init                 # proyecto nuevo (interactivo)
 harness inject               # proyecto existente (por defecto dry-run)
+harness view                 # dashboard localhost del harness del proyecto
 
 # O sin instalar, vía npx ──────────────────────────────────────────────
-# Nota: npx solo expone `harness` durante esa única llamada. El
-# PROGRESS.md / Makefile / scripts generados llaman a `harness ...`,
-# así que tarde o temprano vas a querer la instalación global.
-npx harness-kit init
-npx harness-kit inject --apply
+# Nota: npx solo expone `harness` durante esa única llamada. El Makefile
+# / scripts generados llaman a `harness doctor`, así que tarde o
+# temprano vas a querer la instalación global.
+npx @bojunchai/harness-kit init
+npx @bojunchai/harness-kit inject --apply
 ```
+
+> ¿Por qué el scope `@bojunchai/`? El nombre sin scope `harness-kit` está tomado en npm por un paquete squat sin relación. El binario CLI sigue siendo `harness` — solo `npm install` / `npx` mencionan el scope.
 
 Si usaste `npx` y al ejecutar `harness doctor` ves "command not found: harness", instálalo globalmente:
 
 ```bash
-npm install -g harness-kit
+npm install -g @bojunchai/harness-kit
 ```
 
 ---
